@@ -129,7 +129,7 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
               return (
                 <View
                   key={t.t_id}
-                  className="bg-white  rounded-xl border mb-1 border-neutral-100 overflow-hidden flex-row gap-[0.9px]"
+                  className="bg-white  rounded-xl border mb-1 border-neutral-100 overflow-hidden flex-row "
                   style={{
                     width: cardWidth,
                     height: CARD_HEIGHT,
@@ -145,7 +145,6 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
                   <View style={{ width: imageWidth, height: '100%' }} className="relative">
                     <Image
                       source={avatar ? { uri: avatar } : undefined}
-                      className='rounded-xl'
                       style={{ width: '100%', height: '100%' }}
                       resizeMode="cover"
                     />
@@ -166,7 +165,7 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
                   </View>
 
                   {/* Stars + quote */}
-                  <View className="flex-1 px-5 justify-start pt-5 bg-neutral-200 rounded-xl">
+                  <View className="flex-1 px-5 justify-start pt-5 bg-neutral-200 ">
                     <Stars />
                     <Text
                       numberOfLines={6}

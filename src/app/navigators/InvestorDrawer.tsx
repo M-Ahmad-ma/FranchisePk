@@ -35,7 +35,7 @@ const menuItems: MenuItem[] = [
   { route: 'ContactUs', label: 'Contact us', icon: CircleQuestionMark },
   { route: 'Partners', label: 'Partners', icon: LayoutDashboard },
   { route: 'Vacancies', label: 'Vacancies', icon: Briefcase },
-  { route: 'Profile', label: 'My Profile', icon: User },
+  { route: 'Profile', label: 'Profile', icon: User },
 ];
 
 const ACTIVE_COLOR = '#5279AC';
@@ -75,7 +75,7 @@ function CustomDrawerContent({
             <Pressable
               key={route}
               onPress={() => handlePress(route)}
-              className="flex-row items-center justify-between px-4 py-3.5"
+              className={`${isActive ? 'border-l-primary-700 border-l-[5px]' : ''} flex-row items-center justify-between px-4 py-3.5`}
               style={{
                 backgroundColor: isActive ? '#EDF0FF' : 'transparent',
               }}

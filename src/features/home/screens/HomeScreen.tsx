@@ -68,6 +68,7 @@ export function HomeScreen() {
               showDots={true}
               className='mb-3'
               interval={4000}
+              cardShadow={false}
               dotColor='bg-neutral-300'
               activeDotColor='bg-primary-700'
               onItemPress={(index) => {

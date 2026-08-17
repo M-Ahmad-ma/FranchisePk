@@ -81,7 +81,11 @@ export function RoleSelectionScreen() {
 
   const onContinue = () => {
     if (!selected) return;
-    navigation.replace('Login', { role: selected });
+    if (selected === 'brand') {
+      navigation.replace('BrandLogin', { role: selected });
+    } else {
+      navigation.replace('Login', { role: selected });
+    }
   };
 
   const fade = (i: number) => ({

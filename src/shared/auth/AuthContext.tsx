@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import type { User } from '../api/types';
+import type { User, UserRole } from '../api/types';
 import * as authService from './authService';
 import { setTokenProvider, setUnauthorizedHandler } from '../api/client';
 import { BYPASS_AUTH } from '../../config';
@@ -9,7 +9,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, role?: UserRole) => Promise<void>;
   register: (data: {
     f_name: string;
     l_name: string;
@@ -18,7 +18,7 @@ interface AuthState {
     contact: string;
     company: string;
     city?: string;
-  }) => Promise<void>;
+  }, role?: UserRole) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -71,11 +71,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  const handleLogin = useCallback(async (email: string, password: string) => {
+  const handleLogin = useCallback(async (email: string, password: string, role: UserRole = 'investor') => {
     const { token: newToken, user: newUser } = await authService.login({
       email,
       password,
-    });
+    }, role);
     setToken(newToken);
     setUser(newUser);
   }, []);
@@ -89,8 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       contact: string;
       company: string;
       city?: string;
-    }) => {
-      const { token: newToken, user: newUser } = await authService.register(data);
+    }, role: UserRole = 'investor') => {
+      const { token: newToken, user: newUser } = await authService.register(data, role);
       setToken(newToken);
       setUser(newUser);
     },

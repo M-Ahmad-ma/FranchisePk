@@ -6,7 +6,7 @@ import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../shared/types/navigation';
 import { useAuth } from '../../../shared/auth/AuthContext';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Store } from 'lucide-react-native';
 
 const cities = [
   'Lahore',
@@ -21,9 +21,9 @@ const cities = [
   'Rawalpindi',
 ];
 
-export function SignupScreen() {
+export function BrandSignupScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const route = useRoute<RouteProp<AuthStackParamList, 'Signup'>>();
+  const route = useRoute<RouteProp<AuthStackParamList, 'BrandSignup'>>();
   const role = route.params?.role;
   const { register } = useAuth();
 
@@ -54,7 +54,7 @@ export function SignupScreen() {
         contact: contact.trim(),
         company: company.trim(),
         city: city || undefined,
-      }, role ?? 'investor');
+      }, 'brand');
     } catch (e: any) {
       const msg =
         e?.response?.data?.message || e?.message || 'Registration failed. Please try again.';
@@ -67,19 +67,19 @@ export function SignupScreen() {
   return (
     <AuthLayout>
       {role && (
-        <View className="absolute top-6 left-6  right-6 flex-row items-center justify-between z-50">
+        <View className="absolute top-6 left-6 right-6 flex-row items-center justify-between z-50">
           <TouchableOpacity
             onPress={() => navigation.replace('RoleSelection')}
             activeOpacity={0.7}
             className="flex-row items-center gap-2"
           >
-            <View className="w-9 h-9 rounded-full bg-primary-200 border border-primary-300 items-center justify-center">
-              <ArrowLeft size={16} color="#5279AC" />
+            <View className="w-9 h-9 rounded-full bg-secondary-200 border border-secondary-300 items-center justify-center">
+              <ArrowLeft size={16} color="#BC5D00" />
             </View>
-            <Text className="text-primary-700 font-lato-bold text-sm">Change role</Text>
+            <Text className="text-secondary-700 font-lato-bold text-sm">Change role</Text>
           </TouchableOpacity>
-          <View className="rounded-full bg-primary-200 border border-primary-300 px-3 py-1.5">
-            <Text className="text-primary-700 font-lato-bold text-xs capitalize">
+          <View className="rounded-full bg-secondary-200 border border-secondary-300 px-3 py-1.5">
+            <Text className="text-secondary-700 font-lato-bold text-xs capitalize">
               {role} account
             </Text>
           </View>
@@ -92,9 +92,14 @@ export function SignupScreen() {
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
       >
         <View className="mb-8">
-          <Text className="text-center text-primary-900 text-3xl font-lato-bold">FranchisePk</Text>
-          <Text className="text-center text-neutral-600 text-base mt-1">
-            Premium access to global expansion.
+          <View className="w-14 h-14 rounded-2xl bg-secondary-400 items-center justify-center mb-5">
+            <Store size={26} color="#3A2B00" />
+          </View>
+          <Text className="text-neutral-900 text-3xl font-lato-bold">
+            Grow your brand
+          </Text>
+          <Text className="text-neutral-600 text-base mt-1">
+            List your franchise and attract qualified investors.
           </Text>
         </View>
 
@@ -106,8 +111,8 @@ export function SignupScreen() {
           >
             <Text className="text-neutral-600 text-center font-lato-bold text-base">Login</Text>
           </TouchableOpacity>
-          <View className="flex-1 py-2 border-b-2 border-primary-700">
-            <Text className="text-primary-700 text-center font-lato-bold text-base">Sign Up</Text>
+          <View className="flex-1 py-2 border-b-2 border-secondary-700">
+            <Text className="text-secondary-700 text-center font-lato-bold text-base">Sign Up</Text>
           </View>
         </View>
 
@@ -161,7 +166,7 @@ export function SignupScreen() {
 
         <View className="bg-white rounded-2xl p-2 border border-neutral-200 mb-4">
           <TextInput
-            placeholder="Company / Brand Name"
+            placeholder="Brand / Company Name"
             placeholderTextColor="#8990A8"
             className="px-4 py-3 text-neutral-900"
             value={company}
@@ -176,7 +181,7 @@ export function SignupScreen() {
         >
           <View className="px-4 py-3 flex-row justify-between items-center">
             <Text className={city ? 'text-neutral-900' : 'text-neutral-600'}>
-              {city || 'Select city (optional)'}
+              {city || 'Headquarters city (optional)'}
             </Text>
             <Text className="text-neutral-600">▼</Text>
           </View>
@@ -196,20 +201,20 @@ export function SignupScreen() {
         <TouchableOpacity
           onPress={handleRegister}
           disabled={loading}
-          className="bg-primary-700 rounded-2xl py-4 items-center mb-6"
+          className="bg-secondary-700 rounded-2xl py-4 items-center mb-6"
         >
           {loading ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text className="text-primary-100 font-lato-bold text-base">Create Account</Text>
+            <Text className="text-secondary-100 font-lato-bold text-base">Create Brand Account</Text>
           )}
         </TouchableOpacity>
 
         <View className="pb-6">
           <Text className="text-neutral-600 text-center text-sm">
             By continuing, you agree to our{' '}
-            <Text className="text-primary-700 font-lato-bold">Terms of Service</Text> and{' '}
-            <Text className="text-primary-700 font-lato-bold">Privacy Policy</Text>.
+            <Text className="text-secondary-700 font-lato-bold">Terms of Service</Text> and{' '}
+            <Text className="text-secondary-700 font-lato-bold">Privacy Policy</Text>.
           </Text>
         </View>
       </ScrollView>
@@ -240,7 +245,7 @@ export function SignupScreen() {
               className="mt-2 py-2 items-center"
               onPress={() => setDropdownVisible(false)}
             >
-              <Text className="text-primary-700 font-lato-bold">Cancel</Text>
+              <Text className="text-secondary-700 font-lato-bold">Cancel</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

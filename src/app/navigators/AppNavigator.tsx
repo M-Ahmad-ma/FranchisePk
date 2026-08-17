@@ -1,10 +1,11 @@
 import { View, ActivityIndicator } from 'react-native';
 import { AuthNavigator } from './AuthNavigator';
 import { InvestorDrawer } from './InvestorDrawer';
+import { BrandDrawer } from './BrandDrawer';
 import { useAuth } from '../../shared/auth/AuthContext';
 
 export function AppNavigator() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -14,5 +15,9 @@ export function AppNavigator() {
     );
   }
 
-  return isAuthenticated ? <InvestorDrawer /> : <AuthNavigator />;
+  if (!isAuthenticated) {
+    return <AuthNavigator />;
+  }
+
+  return user?.role === 'brand' ? <BrandDrawer /> : <InvestorDrawer />;
 }

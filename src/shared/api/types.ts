@@ -4,6 +4,8 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export type UserRole = 'investor' | 'brand';
+
 export interface User {
   id: number;
   name: string;
@@ -13,6 +15,7 @@ export interface User {
   image: string;
   city: string;
   date: string;
+  role?: UserRole;
 }
 
 export interface LoginRequest {

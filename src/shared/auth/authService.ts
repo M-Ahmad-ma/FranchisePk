@@ -1,4 +1,4 @@
-import type { User, LoginRequest, RegisterRequest, LoginResponse } from '../api/types';
+import type { User, LoginRequest, RegisterRequest, LoginResponse, UserRole } from '../api/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TOKEN_KEY = 'auth_token';
@@ -29,7 +29,7 @@ function buildToken(): string {
 
 // Local-only auth: the auth backend is not available, so a session is
 // created client-side without making any network request.
-export async function login(credentials: LoginRequest): Promise<LoginResponse> {
+export async function login(credentials: LoginRequest, role: UserRole = 'investor'): Promise<LoginResponse> {
   const user: User = {
     id: Date.now(),
     name: credentials.email.split('@')[0] || 'User',
@@ -39,13 +39,14 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
     image: '',
     city: '',
     date: new Date().toISOString(),
+    role,
   };
   const token = buildToken();
   await persistAuth(token, user);
   return { token, user };
 }
 
-export async function register(data: RegisterRequest): Promise<LoginResponse> {
+export async function register(data: RegisterRequest, role: UserRole = 'investor'): Promise<LoginResponse> {
   const user: User = {
     id: Date.now(),
     name:
@@ -58,6 +59,7 @@ export async function register(data: RegisterRequest): Promise<LoginResponse> {
     image: data.image || '',
     city: data.city || '',
     date: new Date().toISOString(),
+    role,
   };
   const token = buildToken();
   await persistAuth(token, user);

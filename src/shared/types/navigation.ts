@@ -13,6 +13,9 @@ export type AuthStackParamList = {
   Login: { role?: AuthRole } | undefined;
   Signup: { role?: AuthRole } | undefined;
   ForgotPassword: undefined;
+  BrandLogin: { role?: AuthRole } | undefined;
+  BrandSignup: { role?: AuthRole } | undefined;
+  BrandForgotPassword: undefined;
 };
 
 export type InvestorDrawerParamList = {
@@ -29,6 +32,20 @@ export type InvestorTabParamList = {
   Properties: NavigatorScreenParams<PropertiesStackParamList>;
   Dashboard: undefined;
   Profile: undefined;
+};
+
+export type BrandDrawerParamList = {
+  BrandTabs: NavigatorScreenParams<BrandTabParamList>;
+  BrandLeads: undefined;
+  BrandProfile: undefined;
+  BrandContactUs: undefined;
+};
+
+export type BrandTabParamList = {
+  BrandDashboard: undefined;
+  BrandLeads: undefined;
+  BrandFranchises: undefined;
+  BrandProfile: undefined;
 };
 
 export type FranchiseStackParamList = {

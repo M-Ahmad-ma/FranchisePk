@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { ApiResponse, Company, Category, Article, InvestorFilterRequest } from './types';
+import type { ApiResponse, Company, Category, Article, InvestorFilterRequest, MoreInfoRequest, City } from './types';
 
 export async function getCompanies(search?: string) {
   const res = await apiClient.get<ApiResponse<{
@@ -63,4 +63,43 @@ export async function filterCompanies(params: InvestorFilterRequest) {
     companies: Company[];
   }>>('/companies/filter', params);
   return res.data.data;
+}
+
+export async function getCities() {
+  const res = await apiClient.get<ApiResponse<{ cities: City[] }>>('/cities');
+  return res.data.data;
+}
+
+export async function submitMoreInfo(slug: string, payload: MoreInfoRequest) {
+  console.log('[MoreInfo][DEBUG] →', `POST /company/more-info/${slug}`, JSON.stringify(payload));
+  try {
+    const res = await apiClient.post<ApiResponse<boolean>>(`/company/more-info/${slug}`, payload);
+    console.log('[MoreInfo][DEBUG] ← ok', res.status, JSON.stringify(res.data));
+    return res.data;
+  } catch (e: any) {
+    console.log('[MoreInfo][DEBUG] ← error', {
+      status: e?.response?.status,
+      statusText: e?.response?.statusText,
+      data: e?.response?.data,
+      message: e?.message,
+    });
+    throw e;
+  }
+}
+
+/**
+ * Map a submitMoreInfo failure to a user-friendly message.
+ * The API returns 500 + an HTML page (not the documented 409 JSON) when the
+ * same email is submitted twice for the same brand, so we sniff the body.
+ */
+export function getMoreInfoErrorMessage(e: any): string {
+  const data = e?.response?.data;
+  const status = e?.response?.status;
+  if (typeof data === 'string' && /Duplicate entry/i.test(data)) {
+    return 'You have already requested this brand.';
+  }
+  return (
+    data?.message ||
+    (status === 409 ? 'You have already requested this brand.' : 'Something went wrong. Please try again.')
+  );
 }

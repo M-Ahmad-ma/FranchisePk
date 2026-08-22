@@ -1,5 +1,16 @@
-import { useMemo, useState, type ReactNode } from 'react';
-import { ScrollView, Text, View, TouchableOpacity, Image, Linking } from 'react-native';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  ScrollView,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  Linking,
+  TextInput,
+  ActivityIndicator,
+  Modal,
+  FlatList,
+} from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -25,6 +36,7 @@ import {
   Mail,
   Camera,
   User,
+  CheckCircle2,
 } from 'lucide-react-native';
 import FinancialStatsCard from '../components/FrachiseDetailCard';
 import Card from '../../home/components/Card';
@@ -37,6 +49,8 @@ import { getCompanyCoverImage } from '../../../shared/utils/franchise';
 import { Log } from '../../../shared/utils/Log';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import { HTMLContentView } from '../../../shared/components/HTMLContentView';
+import * as companyService from '../../../shared/api/companyService';
+import type { City } from '../../../shared/api/types';
 
 function extractVideoId(url: string): string | null {
   try {
@@ -128,6 +142,79 @@ export function CompanyDetailScreen() {
   const [galleryVisible, setGalleryVisible] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [heroIndex, setHeroIndex] = useState(0);
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [number, setNumber] = useState('');
+  const [message, setMessage] = useState('');
+  const [city, setCity] = useState('');
+  const [cities, setCities] = useState<City[]>([]);
+  const [dropdown, setDropdown] = useState<'city' | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    if (sheetVisible) {
+      setSubmitted(false);
+      setFormError('');
+      if (cities.length === 0) {
+        companyService
+          .getCities()
+          .then((d) => {
+            if (Array.isArray(d.cities)) setCities(d.cities);
+          })
+          .catch(() => {});
+      }
+    }
+  }, [sheetVisible, cities.length]);
+
+  const cityValue = (c: City): string =>
+    String(c.id ?? c.co_city ?? c.name ?? '');
+
+  const handleSubmitRequest = async () => {
+    setFormError('');
+    if (!company) return;
+    if (!firstName.trim() || !lastName.trim()) {
+      setFormError('Please enter your name.');
+      return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+      setFormError('Please enter a valid email address.');
+      return;
+    }
+    if (!number.trim()) {
+      setFormError('Please enter your phone number.');
+      return;
+    }
+    if (!city) {
+      setFormError('Please select your city.');
+      return;
+    }
+    const targetSlug = company.co_slug || slug;
+    setSubmitting(true);
+    try {
+      await companyService.submitMoreInfo(targetSlug, {
+        firstname: firstName.trim(),
+        lastname: lastName.trim(),
+        email: email.trim(),
+        number: number.trim(),
+        city,
+        co_id: company.co_id,
+        co_name: company.co_name,
+        message: message.trim(),
+      });
+      setSubmitted(true);
+    } catch (e: any) {
+      setFormError(companyService.getMoreInfoErrorMessage(e));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const field =
+    'bg-white rounded-2xl px-5 py-4 text-neutral-900 font-lato text-base border border-neutral-300';
 
   const heroImages = useMemo(() => {
     return (company?.company_images ?? [])
@@ -522,10 +609,162 @@ export function CompanyDetailScreen() {
       </View>
 
       <BottomSheet visible={sheetVisible} onClose={() => setSheetVisible(false)}>
-        <Text className="text-xl font-lato-bold text-neutral-900 mb-2">Submit Request</Text>
-        <Text className="text-neutral-600 mb-6">Fill in your details to submit a franchise inquiry request for {company.co_name}.</Text>
-        <Button title="Submit" onPress={() => setSheetVisible(false)} />
+        {submitted ? (
+          <View className="items-center py-6">
+            <View className="w-20 h-20 rounded-full items-center justify-center mb-5"
+              style={{ backgroundColor: 'rgba(0,165,114,0.12)' }}>
+              <CheckCircle2 size={40} color="#00A572" strokeWidth={2.2} />
+            </View>
+            <Text className="text-neutral-900 font-lato-black text-2xl mb-2">Request sent</Text>
+            <Text className="text-neutral-600 font-lato text-sm leading-5 text-center mb-6">
+              Our team will connect you with {company.co_name}. Keep an eye on your inbox.
+            </Text>
+            <Button title="Done" onPress={() => setSheetVisible(false)} className="w-full" />
+          </View>
+        ) : (
+          <>
+            <Text className="text-xl font-lato-bold text-neutral-900 mb-2">Submit Request</Text>
+            <Text className="text-neutral-600 mb-5">
+              Fill in your details to submit a franchise inquiry request for {company.co_name}.
+            </Text>
+
+            {formError ? (
+              <Text className="text-red-500 text-sm font-lato mb-3">{formError}</Text>
+            ) : null}
+
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                <Text className="text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1">First name</Text>
+                <TextInput
+                  placeholder="Ali"
+                  placeholderTextColor="#A3ABC4"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  className={field}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1">Last name</Text>
+                <TextInput
+                  placeholder="Khan"
+                  placeholderTextColor="#A3ABC4"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  className={field}
+                />
+              </View>
+            </View>
+
+            <View className="mt-4">
+              <Text className="text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1">Email address</Text>
+              <TextInput
+                placeholder="you@example.com"
+                placeholderTextColor="#A3ABC4"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                value={email}
+                onChangeText={setEmail}
+                className={field}
+              />
+            </View>
+
+            <View className="mt-4">
+              <Text className="text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1">Phone number</Text>
+              <TextInput
+                placeholder="03001234567"
+                placeholderTextColor="#A3ABC4"
+                keyboardType="phone-pad"
+                value={number}
+                onChangeText={setNumber}
+                className={field}
+              />
+            </View>
+
+            <View className="mt-4">
+              <Text className="text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1">Your city</Text>
+              <TouchableOpacity
+                onPress={() => setDropdown('city')}
+                activeOpacity={0.8}
+                className={`${field} flex-row items-center justify-between`}
+              >
+                <Text className={city ? 'text-neutral-900' : 'text-neutral-600'}>
+                  {city || 'Select city'}
+                </Text>
+                <ChevronDown size={18} color="#8990A8" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="mt-4">
+              <Text className="text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1">
+                Message <Text className="text-neutral-500 font-lato">(optional)</Text>
+              </Text>
+              <TextInput
+                placeholder="Tell us a bit about your investment plans…"
+                placeholderTextColor="#A3ABC4"
+                multiline
+                value={message}
+                onChangeText={setMessage}
+                className={`${field} min-h-[96px]`}
+                style={{ textAlignVertical: 'top' }}
+              />
+            </View>
+
+            <Button
+              title="Submit Request"
+              onPress={handleSubmitRequest}
+              loading={submitting}
+              disabled={submitting}
+              className="w-full mt-6 py-3"
+            />
+          </>
+        )}
       </BottomSheet>
+
+      <Modal visible={dropdown === 'city'} transparent animationType="fade">
+        <TouchableOpacity
+          className="flex-1 bg-black/30 justify-center px-6"
+          activeOpacity={1}
+          onPress={() => setDropdown(null)}
+        >
+          <View className="bg-white rounded-3xl p-4 max-h-[70%]">
+            <Text className="text-neutral-900 font-lato-bold text-base px-2 pt-2 pb-1">
+              Select your city
+            </Text>
+            {cities.length === 0 ? (
+              <View className="items-center py-8">
+                <ActivityIndicator color="#436CF5" />
+              </View>
+            ) : (
+              <FlatList
+                data={cities as any[]}
+                keyExtractor={(item, i) => String(item.id ?? i)}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }: any) => {
+                  const label = cityValue(item);
+                  const selected = city === label;
+                  return (
+                    <TouchableOpacity
+                      className="py-3 border-b border-neutral-200"
+                      onPress={() => {
+                        setCity(label);
+                        setDropdown(null);
+                      }}
+                    >
+                      <Text className={selected ? 'text-primary-700 font-lato-bold' : 'text-neutral-900'}>
+                        {label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            )}
+            <TouchableOpacity className="mt-2 py-2 items-center" onPress={() => setDropdown(null)}>
+              <Text className="text-primary-700 font-lato-bold">Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       <BottomSheet visible={galleryVisible} onClose={() => setGalleryVisible(false)}>
         <Text className="text-xl font-lato-bold text-neutral-900 mb-3">Gallery</Text>

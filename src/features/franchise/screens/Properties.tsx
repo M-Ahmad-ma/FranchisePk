@@ -1,15 +1,18 @@
-import { FlatList, Text, View, ActivityIndicator } from "react-native"
+import { FlatList, Text, View, TouchableOpacity, Platform } from "react-native"
 import { MainLayout } from "../../../shared/layouts/MainLayout"
 import { useEffect, useState } from "react"
 import PropertyCard from "../components/PropertiesCard"
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import type { PropertiesStackParamList } from "../../../shared/types/navigation"
-import ListPropertyCTA from "../components/ListPropertCTA"
+import BottomSheet from "../../../shared/components/BottomSheet"
+import AddPropertySheet from "../components/AddPropertySheet"
 import { useProperties } from "../../../shared/hooks/useProperties"
 import { imageUrl } from "../../../shared/api/imageUrl"
 import { paginate, hasMore } from "../../../shared/utils/franchise"
 import { Skeleton } from "../../../shared/components/Skeleton"
+import { HousePlus } from 'lucide-react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const PAGE_SIZE = 6
 
@@ -17,7 +20,9 @@ function Properties() {
   const [page, setPage] = useState(1)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const navigation = useNavigation<NativeStackNavigationProp<PropertiesStackParamList>>()
+  const insets = useSafeAreaInsets()
   const { data, isLoading, isError } = useProperties()
+  const [sheetVisible, setSheetVisible] = useState(false)
 
   const properties = data?.property ?? []
   const visibleProperties = paginate(properties, page, PAGE_SIZE)
@@ -50,12 +55,21 @@ function Properties() {
   const renderFooter = () => {
     if (isLoadingMore && hasMoreItems) {
       return (
-        <View className="items-center py-6">
-          <ActivityIndicator color="#436CF5" />
+        <View>
+          {[0, 1].map((i) => (
+            <View key={i} className="bg-white rounded-2xl overflow-hidden mx-4 mb-4">
+              <Skeleton className="w-full h-48 rounded-none" />
+              <View className="px-4 py-4">
+                <Skeleton className="w-24 h-3 mb-2" />
+                <Skeleton className="w-3/4 h-6 mb-2" />
+                <Skeleton className="w-1/2 h-4" />
+              </View>
+            </View>
+          ))}
         </View>
       )
     }
-    return <ListPropertyCTA />
+    return null
   }
 
   return (
@@ -110,6 +124,24 @@ function Properties() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 24 }}
       />
+      <TouchableOpacity
+        onPress={() => setSheetVisible(true)}
+        activeOpacity={0.8}
+        className="absolute right-5 w-20 h-20 rounded-full bg-primary-700 items-center justify-center shadow-lg"
+        style={{
+          bottom: insets.bottom + (Platform.OS === 'ios' ? 24 : 20),
+          shadowColor: '#436CF5',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.35,
+          shadowRadius: 10,
+          elevation: 8,
+        }}
+      >
+        <HousePlus size={26} color="#FFFFFF" />
+      </TouchableOpacity>
+      <BottomSheet visible={sheetVisible} onClose={() => setSheetVisible(false)}>
+        <AddPropertySheet onClose={() => setSheetVisible(false)} />
+      </BottomSheet>
     </MainLayout>
   )
 }

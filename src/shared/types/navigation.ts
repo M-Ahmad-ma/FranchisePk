@@ -1,18 +1,18 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type RootStackParamList = {
-  Auth: undefined;
+  Auth: NavigatorScreenParams<AuthStackParamList> | undefined;
   InvestorDrawer: undefined;
+  BrandDrawer: undefined;
 };
 
 export type AuthRole = 'investor' | 'brand';
 
 export type AuthStackParamList = {
-  Onboarding: undefined;
-  RoleSelection: undefined;
   Login: { role?: AuthRole } | undefined;
   Signup: { role?: AuthRole } | undefined;
   ForgotPassword: undefined;
+  InvestorGetStarted: undefined;
   BrandLogin: { role?: AuthRole } | undefined;
   BrandSignup: { role?: AuthRole } | undefined;
   BrandForgotPassword: undefined;
@@ -20,10 +20,10 @@ export type AuthStackParamList = {
 
 export type InvestorDrawerParamList = {
   MainTabs: NavigatorScreenParams<InvestorTabParamList>;
+  Team: undefined;
   ContactUs: undefined;
   Partners: undefined;
   Vacancies: undefined;
-  Profile: undefined;
 };
 
 export type InvestorTabParamList = {
@@ -31,7 +31,6 @@ export type InvestorTabParamList = {
   FranchiseDirectory: NavigatorScreenParams<FranchiseStackParamList>;
   Properties: NavigatorScreenParams<PropertiesStackParamList>;
   Dashboard: undefined;
-  Profile: undefined;
 };
 
 export type BrandDrawerParamList = {

@@ -1,4 +1,4 @@
-import { FlatList, Text, View, ActivityIndicator } from 'react-native';
+import { FlatList, Text, View } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -111,8 +111,18 @@ export function FranchiseListScreen() {
         }
         ListFooterComponent={
           isLoadingMore && hasMoreItems ? (
-            <View className="items-center py-6">
-              <ActivityIndicator color="#436CF5" />
+            <View className="mt-2">
+              {[0, 1].map((i) => (
+                <View key={i} className="bg-white rounded-xl mx-2 my-2 overflow-hidden">
+                  <Skeleton className="w-full h-44 rounded-xl" />
+                  <View className="px-4 pb-4 pt-2">
+                    <Skeleton className="w-2/3 h-6 mb-2" />
+                    <Skeleton className="w-1/3 h-5 mb-2" />
+                    <Skeleton className="w-full h-3.5 mb-1" />
+                    <Skeleton className="w-5/6 h-3.5" />
+                  </View>
+                </View>
+              ))}
             </View>
           ) : null
         }

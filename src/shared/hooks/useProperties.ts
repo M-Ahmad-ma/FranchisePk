@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as propertyService from '../api/propertyService';
 
 export function useProperties() {
@@ -15,5 +15,21 @@ export function useProperty(id: string) {
     queryFn: () => propertyService.getProperty(id),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useAddProperty() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      fields,
+      image,
+    }: {
+      fields: propertyService.AddPropertyFields;
+      image?: propertyService.AddPropertyImage;
+    }) => propertyService.addProperty(fields, image),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    },
   });
 }

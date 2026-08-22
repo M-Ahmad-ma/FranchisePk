@@ -20,12 +20,29 @@ export interface User {
 
 export interface LoginRequest {
   email: string;
-  password: string;
+  pass: string;
 }
 
 export interface LoginResponse {
   token: string;
-  user: User;
+  user: ApiLoginUser;
+}
+
+/** Raw login payload as returned by the API (before mapping to User). */
+export interface ApiLoginUser {
+  user_id?: number;
+  id?: number;
+  firstname?: string;
+  lastname?: string;
+  name?: string;
+  email: string;
+  contact?: string;
+  image?: string;
+  date?: string;
+  company?: string;
+  city?: string;
+  visibility?: string;
+  orderno?: string;
 }
 
 export interface RegisterRequest {
@@ -37,6 +54,7 @@ export interface RegisterRequest {
   company: string;
   city?: string;
   image?: string;
+  orderno?: string;
 }
 
 export interface RegisterResponse {
@@ -170,6 +188,18 @@ export interface TeamMember {
   contact?: string;
 }
 
+export interface TeamEmployee {
+  u_id: string;
+  u_firstname?: string;
+  u_lastname?: string;
+  a_position?: string;
+  u_email?: string;
+  u_image?: string;
+  u_contact?: string;
+  u_bio?: string;
+  u_city?: string;
+}
+
 export interface HomeData {
   counties: any[];
   seo: Record<string, any>;
@@ -192,4 +222,22 @@ export interface InvestorFilterRequest {
   cat?: string;
   range?: number;
   city?: string;
+}
+
+export interface MoreInfoRequest {
+  firstname: string;
+  lastname: string;
+  email: string;
+  number: string;
+  city: string;
+  co_id: string;
+  co_name?: string;
+  message?: string;
+  lead_type?: 'employee_contact' | 'investor' | 'ask-the-expert';
+}
+
+export interface City {
+  id?: string | number;
+  co_city?: string;
+  name?: string;
 }

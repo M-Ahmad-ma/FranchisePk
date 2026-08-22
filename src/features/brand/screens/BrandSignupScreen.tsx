@@ -4,7 +4,7 @@ import { AuthLayout } from '../../../shared/layouts/AuthLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../../shared/types/navigation';
+import type { AuthStackParamList, RootStackParamList } from '../../../shared/types/navigation';
 import { useAuth } from '../../../shared/auth/AuthContext';
 import { ArrowLeft, Store } from 'lucide-react-native';
 
@@ -55,6 +55,8 @@ export function BrandSignupScreen() {
         company: company.trim(),
         city: city || undefined,
       }, 'brand');
+      const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+      rootNav?.reset({ index: 0, routes: [{ name: 'BrandDrawer' }] });
     } catch (e: any) {
       const msg =
         e?.response?.data?.message || e?.message || 'Registration failed. Please try again.';
@@ -69,7 +71,7 @@ export function BrandSignupScreen() {
       {role && (
         <View className="absolute top-6 left-6 right-6 flex-row items-center justify-between z-50">
           <TouchableOpacity
-            onPress={() => navigation.replace('RoleSelection')}
+            onPress={() => navigation.replace('Signup', { role: 'brand' })}
             activeOpacity={0.7}
             className="flex-row items-center gap-2"
           >
@@ -106,7 +108,7 @@ export function BrandSignupScreen() {
         <View className="flex-row mb-6">
           <TouchableOpacity
             className="flex-1 py-2 border-b-2 border-neutral-200"
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.navigate('BrandLogin', { role: 'brand' })}
             activeOpacity={0.7}
           >
             <Text className="text-neutral-600 text-center font-lato-bold text-base">Login</Text>

@@ -15,7 +15,7 @@ export interface FranshiseFilterChip {
 }
 
 export interface FeaturedCardProps {
-  title: string;
+  title?: string;
   description?: string;
   investmentRange?: string;
   tag?: string;

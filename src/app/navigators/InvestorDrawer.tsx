@@ -3,23 +3,23 @@ import { DrawerActions } from '@react-navigation/native';
 import {
   Home,
   LayoutDashboard,
-  User,
+  Users,
   CircleQuestionMark,
   Briefcase,
   ChevronRight,
+  UserPlus,
   LogIn,
-  LogOut,
 } from 'lucide-react-native';
 import { View, Text, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { DrawerContentComponentProps } from '@react-navigation/drawer';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { InvestorBottomTab } from './InvestorBottomTab';
-import { InvestorProfileScreen } from '../../features/investor/screens/InvestorProfileScreen';
+import { TeamScreen } from '../../features/investor/screens/TeamScreen';
 import { ContactUs } from '../../features/investor/screens/ContactUs';
 import { Partners } from '../../features/investor/screens/Partners';
 import { VacancyScreen } from '../../features/investor/screens/VacancyScreen';
-import type { InvestorDrawerParamList } from '../../shared/types/navigation';
-import { useAuth } from '../../shared/auth/AuthContext';
+import type { InvestorDrawerParamList, RootStackParamList } from '../../shared/types/navigation';
 import { Image } from 'react-native';
 
 const Drawer = createDrawerNavigator<InvestorDrawerParamList>();
@@ -32,10 +32,10 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { route: 'MainTabs', label: 'Home', icon: Home },
+  { route: 'Team', label: 'Our Team', icon: Users },
   { route: 'ContactUs', label: 'Contact us', icon: CircleQuestionMark },
   { route: 'Partners', label: 'Partners', icon: LayoutDashboard },
   { route: 'Vacancies', label: 'Vacancies', icon: Briefcase },
-  { route: 'Profile', label: 'Profile', icon: User },
 ];
 
 const ACTIVE_COLOR = '#5279AC';
@@ -48,8 +48,13 @@ function CustomDrawerContent({
   navigation,
 }: CustomDrawerContentProps) {
   const insets = useSafeAreaInsets();
-  const { logout } = useAuth();
   const activeRoute = state.routeNames[state.index];
+
+  const goToAuth = () => {
+    const root = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    root?.navigate('Auth', { screen: 'Signup' });
+    navigation.dispatch(DrawerActions.closeDrawer());
+  };
 
   const handlePress = (route: keyof InvestorDrawerParamList) => {
     navigation.navigate(route as never);
@@ -104,18 +109,18 @@ function CustomDrawerContent({
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Pressable
-          onPress={() => logout()}
+          onPress={goToAuth}
           className="flex-row items-center justify-center gap-2 rounded-xl bg-primary-700 py-3"
         >
           <LogIn size={18} color="#FFFFFF" />
           <Text className="text-white font-lato-bold">Sign In</Text>
         </Pressable>
         <Pressable
-          onPress={() => logout()}
+          onPress={goToAuth}
           className="flex-row items-center justify-center gap-2 rounded-xl border border-neutral-300 py-3"
         >
-          <LogOut size={18} color="#565E74" />
-          <Text className="text-neutral-700 font-lato-bold">Sign Out</Text>
+          <UserPlus size={18} color="#565E74" />
+          <Text className="text-neutral-700 font-lato-bold">Sign Up</Text>
         </Pressable>
       </View>
     </View>
@@ -138,10 +143,10 @@ export function InvestorDrawer() {
       )}
     >
       <Drawer.Screen name="MainTabs" component={InvestorBottomTab} />
+      <Drawer.Screen name="Team" component={TeamScreen} />
       <Drawer.Screen name="ContactUs" component={ContactUs} />
       <Drawer.Screen name="Partners" component={Partners} />
       <Drawer.Screen name="Vacancies" component={VacancyScreen} />
-      <Drawer.Screen name="Profile" component={InvestorProfileScreen} />
     </Drawer.Navigator>
   );
 }

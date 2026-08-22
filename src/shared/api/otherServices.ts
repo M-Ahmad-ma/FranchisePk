@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { ApiResponse, Job, Article, Story, Event, Category, TeamMember, Partner } from './types';
+import type { ApiResponse, Job, Article, Story, Event, Category, TeamEmployee, Partner } from './types';
 
 export async function getJobs() {
   const res = await apiClient.get<ApiResponse<{
@@ -56,6 +56,14 @@ export async function getContact() {
     offices: any[];
     companies: any[];
   }>>('/contact');
+  return res.data.data;
+}
+
+export async function getTeam() {
+  const res = await apiClient.get<ApiResponse<{
+    categories: Category[];
+    employee: TeamEmployee[];
+  }>>('/team');
   return res.data.data;
 }
 

@@ -5,18 +5,20 @@ import Carousel from '../components/Carousal';
 import ChipList from '../../../shared/components/ChipList';
 import Card from "../components/Card"
 import Button from "../../../shared/components/Button"
-import { ChevronRight, Building2, Store, Globe } from 'lucide-react-native';
+import { ChevronRight, Building2, Store, Globe, Handshake, Home, Earth } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import type { InvestorTabParamList } from '../../../shared/types/navigation';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { InvestorTabParamList, RootStackParamList } from '../../../shared/types/navigation';
 import { useHome } from '../../../shared/hooks/useHome';
 import { useInternationalCompanies } from '../../../shared/hooks/useCompanies';
 import { imageUrl } from '../../../shared/api/imageUrl';
 import { Log } from '../../../shared/utils/Log';
-import { Screen } from 'react-native-screens';
+import { Screen, screensEnabled } from 'react-native-screens';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import { TestimonialsSection } from '../components/TestimonialsSection';
 import { INTERNATIONAL_SLUG } from '../../../shared/utils/franchise';
+import QuickAction from '../../franchise/components/QuickAction';
 
 export function HomeScreen() {
 
@@ -56,6 +58,12 @@ export function HomeScreen() {
     return null;
   };
 
+  const goToRoleSelection = () => {
+    const rootNav = navigation.getParent()?.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    rootNav?.navigate('Auth', { screen: 'Signup' });
+  };
+
+
   return (
     <MainLayout>
       <ScrollView className="flex-1 bg-light" showsVerticalScrollIndicator={false}>
@@ -83,51 +91,64 @@ export function HomeScreen() {
             />
           </View>
 
-          <View className="px-4 mt-3">
-            <View className="flex-row gap-3" >
-              <TouchableOpacity
-                style={{ shadowColor: "#000", elevation: 3 }}
-                onPress={() => navigation.navigate('Properties', { screen: 'PropertiesList' })}
-                className="w-1/2 bg-white rounded-2xl border border-neutral-100 p-3.5"
-                activeOpacity={0.85}
-              >
-                <View className="w-10 h-10 rounded-xl items-center justify-center mb-2.5 bg-secondary-200">
-                  <Building2 size={18} color="#2151DA" />
-                </View>
-                <Text className="text-neutral-700 font-lato-bold text-[13px]">Property</Text>
-                <Text className="text-neutral-500 font-lato text-[11px] mt-0.5">Available listings</Text>
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                style={{ shadowColor: "#000", elevation: 3 }}
-                onPress={() => navigation.navigate('FranchiseDirectory', { screen: 'FranchiseList' })}
-                className="w-1/2 bg-white rounded-2xl border border-neutral-100 p-3.5"
-                activeOpacity={0.85}
-              >
-                <View className="w-10 h-10 rounded-xl items-center justify-center mb-2.5 bg-tertiary-200">
-                  <Store size={18} color="#00A572" />
-                </View>
-                <Text className="text-neutral-700 font-lato-bold text-[13px]">Companies</Text>
-                <Text className="text-neutral-500 font-lato text-[11px] mt-0.5">Featured franchises</Text>
-              </TouchableOpacity>
-            </View>
+          <View className="px-2 mt-3">
+            <View className="flex-row w-full flex-wrap -mx-1.5">
+              <View className="w-1/2 px-1 mb-1">
+                <QuickAction
+                  icon={<Home />}
+                  title="Property"
+                  description="Explore property"
+                  containerClassName="w-full bg-primary-300"
+                  bgcolor=""
+                  onPress={() =>
+                    navigation.navigate("Properties", {
+                      screen: "PropertiesList",
+                    })
+                  }
+                />
+              </View>
 
-            {/* Row 2: third item full width */}
-            <View className="mt-3 flex items-center justify-center">
-              <TouchableOpacity
-                style={{ shadowColor: "#000", elevation: 3 }}
-                onPress={() => navigation.navigate('FranchiseDirectory', { screen: 'FranchiseList' })}
-                className="w-[60%] bg-white rounded-2xl border border-neutral-100 p-3.5"
-                activeOpacity={0.85}
-              >
-                <View className="w-10 h-10 rounded-xl items-center justify-center mb-2.5 bg-[#FDEAF5]">
-                  <Globe size={18} color="#E0409A" />
-                </View>
-                <Text className="text-neutral-700 font-lato-bold text-[13px]">International</Text>
-                <Text className="text-neutral-500 font-lato text-[11px] mt-0.5">Global brands</Text>
-              </TouchableOpacity>
+              <View className="w-1/2 px-1 mb-1">
+                <QuickAction
+                  icon={<Building2 />}
+                  title="Companies"
+                  description="Explore trusted franchise brands"
+                  containerClassName="w-full bg-secondary-300"
+                  onPress={() =>
+                    navigation.navigate("FranchiseDirectory", {
+                      screen: "FranchiseList",
+                    })
+                  }
+                />
+              </View>
+
+              <View className="w-1/2 px-1 mb-1">
+                <QuickAction
+                  icon={<Earth />}
+                  title="International"
+                  description="Discover global franchise opportunities"
+                  containerClassName="w-full bg-tertiary-300"
+                  onPress={() => console.log("Companies pressed")}
+                />
+              </View>
+
+              <View className="w-1/2 px-1 mb-1">
+                <QuickAction
+                  icon={<Store />}
+                  title="Become a Franchise"
+                  description="Start your journey as a franchise partner"
+                  containerClassName="w-full bg-neutral-400"
+                  onPress={() =>
+                    navigation.navigate("Auth", {
+                      screen: "Signup",
+                    })
+                  }
+                />
+              </View>
             </View>
           </View>
+
           <View className='pl-4'>
             {/* <ChipList */}
             {/*   items={sectorChips} */}
@@ -137,10 +158,10 @@ export function HomeScreen() {
 
             <View className='flex flex-row items-end justify-between'>
               <View>
-                <Text className="text-neutral-900 text-2xl font-lato-bold mt-5 ml-2">
+                <Text className="text-neutral-900 text-[22px] leading-[26px] font-lato-black mt-5 ml-2">
                   Featured Opportunities
                 </Text>
-                <Text className='ml-2 font-lato text-neutral-600 text-sm'>
+                <Text className='ml-2 font-lato text-neutral-600 text-[13px] mt-1'>
                   Curated based on investor profile
                 </Text>
               </View>
@@ -173,7 +194,6 @@ export function HomeScreen() {
               {featuredCompanies.map((item) => {
                 const imageName = item.company_images?.[0]?.img_name
 
-                Log("company Image", imageName)
 
                 return (
                   <Card
@@ -184,13 +204,14 @@ export function HomeScreen() {
                         params: { slug: item.co_slug },
                       })
                     }
-                    containerClassName="w-[270px]"
+                    containerClassName="w-[260px] h-[150px]"
+                    title={item.co_name}
                     imageSource={
                       imageName
                         ? { uri: imageUrl(imageName) }
                         : undefined
                     }
-                    title={item.co_name}
+                    // title={item.co_name}
                     investmentRange={item.co_investment_range}
                   />
                 )
@@ -203,7 +224,7 @@ export function HomeScreen() {
             </ScrollView>
 
             <View className='flex items-center flex-row justify-between'>
-              <Text className="text-neutral-900 text-2xl font-lato-bold mb-3 ml-3">
+              <Text className="text-neutral-900 text-[22px] leading-[26px] font-lato-black mb-3 ml-3">
                 International Franchises
               </Text>
               <Button
@@ -246,7 +267,7 @@ export function HomeScreen() {
                       imageSource={imageUrl(image) ? { uri: imageUrl(image)! } : undefined}
                       description={item.co_descp}
                       investmentRange={item.co_investment_range}
-                      containerClassName='w-[280px]'
+                      containerClassName='w-[260px] h-[150px]'
                       onPress={() =>
                         navigation.navigate('FranchiseDirectory', {
                           screen: 'CompanyDetail',
@@ -261,7 +282,7 @@ export function HomeScreen() {
 
 
             <View className='flex items-center flex-row justify-between'>
-              <Text className="text-neutral-900 text-2xl font-lato-bold mb-3 ml-3">
+              <Text className="text-neutral-900 text-[22px] leading-[26px] font-lato-black mb-3 ml-3">
                 Featured Malls
               </Text>
               <Button
@@ -296,8 +317,7 @@ export function HomeScreen() {
                       key={item.p_id}
                       title={item.pName}
                       imageSource={imageUrl(item.pimage) ? { uri: imageUrl(item.pimage)! } : undefined}
-                      description={item?.pMessage}
-                      containerClassName='w-[280px]'
+                      containerClassName='w-[280px] h-[190px]'
                       onPress={() =>
                         navigation.navigate('Properties', {
                           screen: 'PropertyDetail',

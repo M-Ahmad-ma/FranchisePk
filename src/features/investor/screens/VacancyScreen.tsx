@@ -20,7 +20,7 @@ export function VacancyScreen() {
                 Vacancies
               </Text>
               <Text className="text-neutral-600 text-base font-lato mt-3 leading-6">
-                Build your career with FranchisePk and work with globally recognized franchise brands.
+                Build your career with Franchise Pakistan and work with globally recognized franchise brands.
               </Text>
             </View>
           </View>

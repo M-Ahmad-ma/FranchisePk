@@ -50,6 +50,14 @@ export function useContact() {
   });
 }
 
+export function useTeam() {
+  return useQuery({
+    queryKey: ['team'],
+    queryFn: otherServices.getTeam,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function usePartners() {
   return useQuery({
     queryKey: ['partners'],

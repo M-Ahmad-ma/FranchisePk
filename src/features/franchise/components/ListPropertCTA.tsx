@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { ArrowRight, HousePlus } from 'lucide-react-native';
 import BottomSheet from '../../../shared/components/BottomSheet';
-import Button from '../../../shared/components/Button';
+import AddPropertySheet from './AddPropertySheet';
 
 interface ListPropertyCTAProps {
   onPress?: () => void;
@@ -51,9 +51,7 @@ const ListPropertyCTA: React.FC<ListPropertyCTAProps> = ({
       </TouchableOpacity>
 
       <BottomSheet visible={sheetVisible} onClose={() => setSheetVisible(false)}>
-        <Text className="text-xl font-lato-bold text-neutral-900 mb-2">Submit Request</Text>
-        <Text className="text-neutral-600 mb-6">Fill in your details to submit a franchise inquiry request for</Text>
-        <Button title="Submit" onPress={() => setSheetVisible(false)} />
+        <AddPropertySheet onClose={() => setSheetVisible(false)} />
       </BottomSheet>
     </View>
   );

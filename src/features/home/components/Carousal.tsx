@@ -6,10 +6,13 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  Text,
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  StyleSheet,
 } from 'react-native';
+import { ArrowRight, ChevronRight } from 'lucide-react-native';
 
 interface CarouselProps {
   images: ImageSourcePropType[];
@@ -29,6 +32,12 @@ interface CarouselProps {
   cardBorderRadius?: number;
   cardMargin?: number;
   cardShadow?: boolean;
+  // Overlay arrow props
+  showOverlayArrow?: boolean;
+  overlayLabel?: string;
+  overlayClassName?: string;
+  overlayDim?: number;
+  onOverlayPress?: () => void;
 }
 
 const Carousel: React.FC<CarouselProps> = ({
@@ -48,6 +57,11 @@ const Carousel: React.FC<CarouselProps> = ({
   cardBorderRadius = 15,
   cardMargin = 16,
   cardShadow = true,
+  showOverlayArrow = false,
+  overlayLabel = 'View All',
+  overlayClassName = '',
+  overlayDim = 0.25,
+  onOverlayPress,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -179,7 +193,7 @@ const Carousel: React.FC<CarouselProps> = ({
   const renderItem = useCallback(({ item, index }: { item: ImageSourcePropType; index: number }) => {
     const cardHorizontalPadding = card ? cardMargin : 0;
     const cardWidth = containerWidth - cardHorizontalPadding * 1;
-    const cardHeight = card ? height - cardMargin * 1 : height;
+    const cardHeight = card ? height - cardMargin * 0.55 : height;
 
     const shadowStyle = card && cardShadow ? {
       shadowColor: '#000',
@@ -279,6 +293,45 @@ const Carousel: React.FC<CarouselProps> = ({
     );
   }
 
+  const renderOverlayArrow = () => {
+    if (!showOverlayArrow || !onOverlayPress) return null;
+
+    return (
+      <View
+        pointerEvents="box-none"
+        style={StyleSheet.absoluteFill}
+        className={overlayClassName}
+      >
+        {/* Dim layer – visual only, never intercepts touches */}
+        <View
+          pointerEvents="none"
+          style={{ ...StyleSheet.absoluteFill, backgroundColor: `rgba(0,0,0,${overlayDim})` }}
+        />
+
+        <TouchableOpacity
+          onPress={onOverlayPress}
+          activeOpacity={0.8}
+          style={{
+            position: 'absolute',
+            bottom: 16,
+            right: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            borderRadius: 999,
+            paddingLeft: 16,
+            paddingRight: 6,
+            paddingVertical: 6,
+          }}
+        >
+          <View className="w-8 h-8 rounded-full  items-center justify-center">
+            <ArrowRight size={18} color="#FFFFFF" strokeWidth={2.5} />
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
     <View
       className={`relative ${className}`}
@@ -314,6 +367,7 @@ const Carousel: React.FC<CarouselProps> = ({
         extraData={containerWidth}
       />
       {renderDots()}
+      {renderOverlayArrow()}
     </View>
   );
 };

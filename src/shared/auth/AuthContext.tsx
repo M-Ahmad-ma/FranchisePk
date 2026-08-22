@@ -9,6 +9,8 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isGuest: boolean;
+  enterAsGuest: () => void;
   login: (email: string, password: string, role?: UserRole) => Promise<void>;
   register: (data: {
     f_name: string;
@@ -28,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
   setTokenProvider(() => Promise.resolve(token));
 
@@ -49,19 +52,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (storedUser) {
             setUser(storedUser);
           }
+          // Refresh profile from the API; fall back to stored user on failure.
+          try {
+            const fresh = await authService.getProfile();
+            setUser(fresh);
+          } catch {
+            // keep stored user
+          }
         } else if (BYPASS_AUTH) {
           const mockUser: User = {
             id: 0,
             name: 'Dev User',
             email: 'dev@franchisepk.com',
             contact: '',
-            company: 'FranchisePk',
+            company: 'Franchise Pakistan',
             image: '',
             city: '',
             date: '',
           };
           setToken('dev-bypass-token');
           setUser(mockUser);
+        } else {
+          // Persist guest browsing so investors aren't re-shown the
+          // "Get Started" form on every app launch.
+          const storedGuest = await authService.getStoredGuest();
+          if (storedGuest) {
+            setIsGuest(true);
+          }
         }
       } catch {
         await authService.clearAuth();
@@ -74,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleLogin = useCallback(async (email: string, password: string, role: UserRole = 'investor') => {
     const { token: newToken, user: newUser } = await authService.login({
       email,
-      password,
+      pass: password,
     }, role);
     setToken(newToken);
     setUser(newUser);
@@ -101,6 +118,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authService.logout();
     setUser(null);
     setToken(null);
+    setIsGuest(false);
+  }, []);
+
+  const handleEnterAsGuest = useCallback(async () => {
+    setIsGuest(true);
+    await authService.setStoredGuest(true);
   }, []);
 
   return (
@@ -110,6 +133,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         isAuthenticated: !!token,
         isLoading,
+        isGuest,
+        enterAsGuest: handleEnterAsGuest,
         login: handleLogin,
         register: handleRegister,
         logout: handleLogout,

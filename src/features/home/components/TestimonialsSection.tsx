@@ -8,7 +8,6 @@ import {
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
-import { Star } from 'lucide-react-native';
 import { imageUrl } from '../../../shared/api/imageUrl';
 import { Skeleton } from '../../../shared/components/Skeleton';
 
@@ -27,22 +26,40 @@ type Props = {
 };
 
 const CARD_GAP = 16;
-const CARD_HEIGHT = 200;
+const AVATAR_SIZE = 44;
 
-function Stars() {
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+function Avatar({ uri, name, size = AVATAR_SIZE }: { uri?: string; name: string; size?: number }) {
+  if (uri) {
+    return (
+      <Image
+        source={{ uri }}
+        style={{ width: size, height: size, borderRadius: size / 2 }}
+        resizeMode="cover"
+      />
+    );
+  }
   return (
-    <View className="flex-row gap-1">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <Star key={i} size={14} color="#F0B429" fill="#F0B429" />
-      ))}
+    <View
+      className="items-center justify-center bg-primary-900"
+      style={{ width: size, height: size, borderRadius: size / 2 }}
+    >
+      <Text className="text-amber-500 font-lato-black text-lg">
+        {initials(name)}
+      </Text>
     </View>
   );
 }
 
 export function TestimonialsSection({ testimonials, isLoading }: Props) {
   const { width } = useWindowDimensions();
-  const cardWidth = width - 20;
-  const imageWidth = cardWidth * 0.38;
+  const cardWidth = width - 20; // full width minus margins
   const scrollRef = useRef<ScrollView>(null);
   const [active, setActive] = useState(0);
 
@@ -56,37 +73,38 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
   };
 
   return (
-    <View className="mb-8 mt-2 relative">
+    <View className="mb-12 mt-2 relative">
+      {/* Ambient glows (optional – keep or remove) */}
       <View
         pointerEvents="none"
-        className="absolute -right-16 top-0"
+        className="absolute -left-24 -bottom-8"
         style={{
-          width: width * 0.7,
-          height: width * 0.7,
-          borderRadius: width * 0.35,
-          backgroundColor: 'rgba(67,108,245,0.06)',
+          width: width * 0.8,
+          height: width * 0.8,
+          borderRadius: width * 0.4,
+          backgroundColor: 'rgba(82,121,172,0.07)',
         }}
       />
-      <Text
+      <View
         pointerEvents="none"
-        className="absolute font-lato-black"
+        className="absolute -right-14 -top-6"
         style={{
-          right: -10,
-          top: 6,
-          fontSize: 120,
-          lineHeight: 130,
-          color: 'rgba(82,121,172,0.08)',
+          width: width * 0.5,
+          height: width * 0.5,
+          borderRadius: width * 0.25,
+          backgroundColor: 'rgba(0,165,114,0.05)',
         }}
-      >
-        "
-      </Text>
+      />
 
-      <View className="px-6 mb-5">
+      <View className="px-6 mb-6">
         <Text className="text-primary-700 font-lato-bold text-xs tracking-[3px] uppercase mb-1">
           Success Stories
         </Text>
-        <Text className="text-neutral-900 text-2xl font-lato-bold leading-8">
+        <Text className="text-neutral-900 text-[26px] leading-[30px] font-lato-black">
           What our Partners say
+        </Text>
+        <Text className="text-neutral-600 font-lato text-[13px] mt-1">
+          Real voices from the franchise network
         </Text>
       </View>
 
@@ -94,20 +112,25 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 28 }}
+          contentContainerStyle={{ paddingHorizontal: 12 }}
         >
           {[0, 1].map((i) => (
             <View
               key={i}
-              className="bg-white rounded-3xl border border-neutral-200 overflow-hidden flex-row"
-              style={{ width: cardWidth, height: CARD_HEIGHT, marginRight: CARD_GAP }}
+              className="bg-white rounded-[28px] border border-neutral-200 overflow-hidden"
+              style={{ width: cardWidth, height: 240, marginRight: CARD_GAP }}
             >
-              <Skeleton style={{ width: imageWidth, height: CARD_HEIGHT }} />
-              <View className="flex-1 p-5 justify-center">
-                <Skeleton className="w-16 h-3 mb-4" />
-                <Skeleton className="w-full h-3 mb-2" />
-                <Skeleton className="w-full h-3 mb-2" />
-                <Skeleton className="w-3/4 h-3" />
+              <View className="p-6 flex-1 justify-center">
+                <Skeleton className="w-full h-5 mb-3" />
+                <Skeleton className="w-full h-5 mb-3" />
+                <Skeleton className="w-3/4 h-5 mb-6" />
+                <View className="flex-row items-center gap-3">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <View>
+                    <Skeleton className="w-24 h-4 mb-1" />
+                    <Skeleton className="w-16 h-3" />
+                  </View>
+                </View>
               </View>
             </View>
           ))}
@@ -129,50 +152,53 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
               return (
                 <View
                   key={t.t_id}
-                  className="bg-white  rounded-xl border mb-1 border-neutral-100 overflow-hidden flex-row "
+                  className="bg-white mb-1 rounded-[28px] overflow-hidden"
                   style={{
                     width: cardWidth,
-                    height: CARD_HEIGHT,
+                    minHeight: 100,
                     marginRight: CARD_GAP,
                     shadowColor: '#0A1A3D',
-                    shadowOpacity: 0.06,
+                    shadowOpacity: 0.08,
                     shadowRadius: 16,
                     shadowOffset: { width: 0, height: 8 },
-                    elevation: 3,
+                    elevation: 4,
+                    padding: 24,
+                    justifyContent: 'center',
                   }}
                 >
-                  {/* Photo with name/position overlay */}
-                  <View style={{ width: imageWidth, height: '100%' }} className="relative">
-                    <Image
-                      source={avatar ? { uri: avatar } : undefined}
-                      style={{ width: '100%', height: '100%' }}
-                      resizeMode="cover"
-                    />
-                    <View className="absolute bottom-3 left-3 right-2">
-                      <Text
-                        numberOfLines={1}
-                        className="text-white font-lato-bold text-sm"
-                      >
+                  {/* Large quote mark (optional – adds visual flair) */}
+                  <Text
+                    className="text-neutral-200 font-lato-black absolute"
+                    style={{ fontSize: 72, top: 12, left: 16, lineHeight: 72 }}
+                  >
+                    “
+                  </Text>
+
+                  {/* Quote text */}
+                  <Text
+                    className="text-neutral-800 font-lato text-[10px] leading-[16px] mt-2"
+                    style={{ fontStyle: 'italic' }}
+                  >
+                    “{t.t_description}”
+                  </Text>
+
+                  {/* Divider */}
+                  <View
+                    className="w-12 h-[2px] rounded-full my-5"
+                    style={{ backgroundColor: '#F0B429' }}
+                  />
+
+                  {/* Author row */}
+                  <View className="flex-row items-center">
+                    <Avatar uri={avatar} name={t.t_name} size={AVATAR_SIZE} />
+                    <View className="ml-3">
+                      <Text className="text-neutral-900 font-lato-black text-base">
                         {t.t_name}
                       </Text>
-                      <Text
-                        numberOfLines={1}
-                        className="text-white/80 font-lato-regular text-xs mt-0.5"
-                      >
+                      <Text className="text-neutral-500 font-lato text-[13px]">
                         {t.t_position}
                       </Text>
                     </View>
-                  </View>
-
-                  {/* Stars + quote */}
-                  <View className="flex-1 px-5 justify-start pt-5 bg-neutral-200 ">
-                    <Stars />
-                    <Text
-                      numberOfLines={6}
-                      className="text-neutral-800 text-[13px] font-normal leading-5 mt-3 font-lato-regular"
-                    >
-                      "{t.t_description}"
-                    </Text>
                   </View>
                 </View>
               );
@@ -186,7 +212,7 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
                   key={t.t_id}
                   className="rounded-full"
                   style={{
-                    width: i === active ? 22 : 7,
+                    width: i === active ? 24 : 7,
                     height: 7,
                     backgroundColor: i === active ? '#5279AC' : '#DAE2FD',
                   }}

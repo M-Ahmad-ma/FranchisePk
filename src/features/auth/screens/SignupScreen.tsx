@@ -1,250 +1,186 @@
-import { View, Text, TextInput, TouchableOpacity, Modal, FlatList, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { AuthLayout } from '../../../shared/layouts/AuthLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../../shared/types/navigation';
-import { useAuth } from '../../../shared/auth/AuthContext';
-import { ArrowLeft } from 'lucide-react-native';
+import type { AuthStackParamList, AuthRole, RootStackParamList } from '../../../shared/types/navigation';
+import { ArrowLeft, ArrowRight, TrendingUp, Store, Check } from 'lucide-react-native';
 
-const cities = [
-  'Lahore',
-  'Karachi',
-  'Islamabad',
-  'Peshawar',
-  'Quetta',
-  'Faisalabad',
-  'Multan',
-  'Sialkot',
-  'Gujranwala',
-  'Rawalpindi',
-];
+const ROLES: {
+  key: AuthRole;
+  title: string;
+  tagline: string;
+  description: string;
+  icon: typeof TrendingUp;
+  accent: string;
+  accentSoft: string;
+}[] = [
+    {
+      key: 'investor',
+      title: 'Investor',
+      tagline: 'I invest in franchises',
+      description: 'Find vetted brands and fund your next high-growth venture.',
+      icon: TrendingUp,
+      accent: '#5279AC',
+      accentSoft: 'rgba(67,108,245,0.08)',
+    },
+    {
+      key: 'brand',
+      title: 'Brand',
+      tagline: 'I own a franchise',
+      description: 'Raise capital, showcase your brand and meet qualified investors.',
+      icon: Store,
+      accent: '#FFB787',
+      accentSoft: 'rgba(240,180,41,0.12)',
+    },
+  ];
 
 export function SignupScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'Signup'>>();
   const role = route.params?.role;
-  const { register } = useAuth();
+  const [selected, setSelected] = useState<AuthRole | null>(null);
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [contact, setContact] = useState('');
-  const [company, setCompany] = useState('');
-  const [city, setCity] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const goBackToHome = () => {
+    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    rootNav?.navigate('InvestorDrawer');
+  };
 
-  const handleRegister = async () => {
-    setError('');
-    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !contact.trim() || !company.trim()) {
-      setError('Please fill in all required fields.');
-      return;
-    }
-    setLoading(true);
-    try {
-      await register({
-        f_name: firstName.trim(),
-        l_name: lastName.trim(),
-        email: email.trim(),
-        password,
-        contact: contact.trim(),
-        company: company.trim(),
-        city: city || undefined,
-      }, role ?? 'investor');
-    } catch (e: any) {
-      const msg =
-        e?.response?.data?.message || e?.message || 'Registration failed. Please try again.';
-      setError(msg);
-    } finally {
-      setLoading(false);
+  const onContinue = () => {
+    if (!selected) return;
+    if (selected === 'brand') {
+      navigation.replace('BrandSignup', { role: 'brand' });
+    } else {
+      navigation.replace('InvestorGetStarted');
     }
   };
 
+  const selectedRole = ROLES.find((r) => r.key === selected);
+
   return (
     <AuthLayout>
-      {role && (
-        <View className="absolute top-6 left-6  right-6 flex-row items-center justify-between z-50">
-          <TouchableOpacity
-            onPress={() => navigation.replace('RoleSelection')}
-            activeOpacity={0.7}
-            className="flex-row items-center gap-2"
-          >
-            <View className="w-9 h-9 rounded-full bg-primary-200 border border-primary-300 items-center justify-center">
-              <ArrowLeft size={16} color="#5279AC" />
-            </View>
-            <Text className="text-primary-700 font-lato-bold text-sm">Change role</Text>
-          </TouchableOpacity>
-          <View className="rounded-full bg-primary-200 border border-primary-300 px-3 py-1.5">
-            <Text className="text-primary-700 font-lato-bold text-xs capitalize">
-              {role} account
-            </Text>
-          </View>
-        </View>
-      )}
-
       <ScrollView
         className="flex-1 px-6 pt-20"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingBottom: 32 }}
       >
         <View className="mb-8">
-          <Text className="text-center text-primary-900 text-3xl font-lato-bold">FranchisePk</Text>
+          <TouchableOpacity
+            onPress={goBackToHome}
+            activeOpacity={0.7}
+            className="self-start mb-6"
+          >
+            <View className="w-11 h-11 rounded-full bg-white border border-neutral-200 items-center justify-center">
+              <ArrowLeft size={20} color="#3F465C" />
+            </View>
+          </TouchableOpacity>
+          <Text className="text-center text-primary-900 text-3xl font-lato-bold">Franchise Pakistan</Text>
           <Text className="text-center text-neutral-600 text-base mt-1">
             Premium access to global expansion.
           </Text>
         </View>
 
-        <View className="flex-row mb-6">
-          <TouchableOpacity
-            className="flex-1 py-2 border-b-2 border-neutral-200"
-            onPress={() => navigation.goBack()}
-            activeOpacity={0.7}
+        <Text className="text-neutral-900 font-lato-black text-2xl mb-1">
+          How would you like to join?
+        </Text>
+        <Text className="text-neutral-600 font-lato text-sm mb-6">
+          {role ? `Creating a ${role} account.` : 'Choose the path that fits you.'}
+        </Text>
+
+        <View className="flex-row gap-3.5">
+          {ROLES.map((r) => {
+            const isActive = selected === r.key;
+            const Icon = r.icon;
+            const iconColor = isActive
+              ? r.key === 'brand'
+                ? '#3A2B00'
+                : '#FFFFFF'
+              : r.accent;
+            return (
+              <TouchableOpacity
+                key={r.key}
+                onPress={() => setSelected(r.key)}
+                activeOpacity={0.85}
+                className="flex-1 rounded-3xl overflow-hidden bg-white"
+                style={{
+                  borderWidth: 1.5,
+                  borderColor: isActive ? r.accent : '#DAE2FD',
+                  backgroundColor: isActive ? r.accentSoft : '#FFFFFF',
+                }}
+              >
+                <View className="p-5 pb-6">
+                  <View className="flex-row items-center justify-between mb-8">
+                    <View
+                      className="w-12 h-12 rounded-2xl items-center justify-center"
+                      style={{ backgroundColor: isActive ? r.accent : '#EEF0FF' }}
+                    >
+                      <Icon size={24} color={iconColor} />
+                    </View>
+                    {isActive && (
+                      <View
+                        className="w-6 h-6 rounded-full items-center justify-center"
+                        style={{ backgroundColor: r.accent }}
+                      >
+                        <Check
+                          size={14}
+                          color={r.key === 'brand' ? '#3A2B00' : '#FFFFFF'}
+                          strokeWidth={3}
+                        />
+                      </View>
+                    )}
+                  </View>
+                  <Text className="text-neutral-900 font-lato-black text-2xl leading-7">
+                    {r.title}
+                  </Text>
+                  <Text className="font-lato text-sm mt-1" style={{ color: r.accent }}>
+                    {r.tagline}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <TouchableOpacity
+          onPress={onContinue}
+          activeOpacity={0.85}
+          disabled={!selected}
+          className="rounded-2xl py-4 items-center justify-center flex-row gap-2 mt-8"
+          style={{
+            backgroundColor: selectedRole ? selectedRole.accent : '#DAE2FD',
+            minHeight: 56,
+          }}
+        >
+          <Text
+            className="font-lato-bold text-base"
+            style={{
+              color: selectedRole
+                ? selectedRole.key === 'brand'
+                  ? '#3A2B00'
+                  : '#FFFFFF'
+                : '#6F778E',
+            }}
           >
-            <Text className="text-neutral-600 text-center font-lato-bold text-base">Login</Text>
-          </TouchableOpacity>
-          <View className="flex-1 py-2 border-b-2 border-primary-700">
-            <Text className="text-primary-700 text-center font-lato-bold text-base">Sign Up</Text>
-          </View>
-        </View>
-
-        {error ? (
-          <Text className="text-red-500 text-sm text-center mb-3">{error}</Text>
-        ) : null}
-
-        <View className="flex-row gap-3">
-          <View className="flex-1 bg-white rounded-2xl p-2 border border-neutral-200 mb-4">
-            <TextInput
-              placeholder="First Name"
-              placeholderTextColor="#8990A8"
-              className="px-4 py-3 text-neutral-900"
-              value={firstName}
-              onChangeText={setFirstName}
-            />
-          </View>
-          <View className="flex-1 bg-white rounded-2xl p-2 border border-neutral-200 mb-4">
-            <TextInput
-              placeholder="Last Name"
-              placeholderTextColor="#8990A8"
-              className="px-4 py-3 text-neutral-900"
-              value={lastName}
-              onChangeText={setLastName}
-            />
-          </View>
-        </View>
-
-        <View className="bg-white rounded-2xl p-2 border border-neutral-200 mb-4">
-          <TextInput
-            placeholder="Email Address"
-            placeholderTextColor="#8990A8"
-            className="px-4 py-3 text-neutral-900"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-          />
-        </View>
-
-        <View className="bg-white rounded-2xl p-2 border border-neutral-200 mb-4">
-          <TextInput
-            placeholder="Phone Number"
-            placeholderTextColor="#8990A8"
-            className="px-4 py-3 text-neutral-900"
-            keyboardType="phone-pad"
-            value={contact}
-            onChangeText={setContact}
-          />
-        </View>
-
-        <View className="bg-white rounded-2xl p-2 border border-neutral-200 mb-4">
-          <TextInput
-            placeholder="Company / Brand Name"
-            placeholderTextColor="#8990A8"
-            className="px-4 py-3 text-neutral-900"
-            value={company}
-            onChangeText={setCompany}
-          />
-        </View>
-
-        <TouchableOpacity
-          className="bg-white rounded-2xl p-2 border border-neutral-200 mb-4"
-          onPress={() => setDropdownVisible(true)}
-          activeOpacity={0.7}
-        >
-          <View className="px-4 py-3 flex-row justify-between items-center">
-            <Text className={city ? 'text-neutral-900' : 'text-neutral-600'}>
-              {city || 'Select city (optional)'}
-            </Text>
-            <Text className="text-neutral-600">▼</Text>
-          </View>
-        </TouchableOpacity>
-
-        <View className="bg-white rounded-2xl p-2 border border-neutral-200 mb-6">
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor="#8990A8"
-            className="px-4 py-3 text-neutral-900"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-        </View>
-
-        <TouchableOpacity
-          onPress={handleRegister}
-          disabled={loading}
-          className="bg-primary-700 rounded-2xl py-4 items-center mb-6"
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text className="text-primary-100 font-lato-bold text-base">Create Account</Text>
-          )}
-        </TouchableOpacity>
-
-        <View className="pb-6">
-          <Text className="text-neutral-600 text-center text-sm">
-            By continuing, you agree to our{' '}
-            <Text className="text-primary-700 font-lato-bold">Terms of Service</Text> and{' '}
-            <Text className="text-primary-700 font-lato-bold">Privacy Policy</Text>.
+            {selected ? `Continue as ${selectedRole?.title}` : 'Select a role'}
           </Text>
-        </View>
-      </ScrollView>
-
-      <Modal visible={dropdownVisible} transparent animationType="fade">
-        <TouchableOpacity
-          className="flex-1 bg-black/30 justify-center px-6"
-          activeOpacity={1}
-          onPress={() => setDropdownVisible(false)}
-        >
-          <View className="bg-white rounded-3xl p-4">
-            <FlatList
-              data={cities}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  className="py-3 border-b border-neutral-200"
-                  onPress={() => {
-                    setCity(item);
-                    setDropdownVisible(false);
-                  }}
-                >
-                  <Text className="text-neutral-900">{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              className="mt-2 py-2 items-center"
-              onPress={() => setDropdownVisible(false)}
-            >
-              <Text className="text-primary-700 font-lato-bold">Cancel</Text>
-            </TouchableOpacity>
-          </View>
+          <ArrowRight
+            size={18}
+            color={
+              selectedRole
+                ? selectedRole.key === 'brand'
+                  ? '#3A2B00'
+                  : '#FFFFFF'
+                : '#6F778E'
+            }
+            strokeWidth={2.5}
+          />
         </TouchableOpacity>
-      </Modal>
+
+        <Text className="text-neutral-400 font-lato text-xs text-center mt-4">
+          Investors can browse instantly — a brand account needs sign up.
+        </Text>
+      </ScrollView>
     </AuthLayout>
   );
 }

@@ -1,8 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-import { Home, Search, Building2, LayoutDashboard, User, Compass } from 'lucide-react-native';
+import { Home, Search, Building2, LayoutDashboard, Compass } from 'lucide-react-native';
 import { HomeScreen } from '../../features/home/screens/HomeScreen';
-import { InvestorProfileScreen } from '../../features/investor/screens/InvestorProfileScreen';
 import { FranchiseStack } from './FranchiseStack';
 import { PropertiesStack } from './PropertiesStack';
 import type { InvestorTabParamList } from '../../shared/types/navigation';
@@ -23,7 +22,6 @@ const tabIcons: Record<keyof InvestorTabParamList, (color: string, size: number)
   FranchiseDirectory: (color, size) => <Compass color={color} size={size} />,
   Properties: (color, size) => <Building2 color={color} size={size} />,
   Dashboard: (color, size) => <LayoutDashboard color={color} size={size} />,
-  Profile: (color, size) => <User color={color} size={size} />,
 };
 
 export function InvestorBottomTab() {
@@ -74,12 +72,6 @@ export function InvestorBottomTab() {
         name="Properties"
         component={PropertiesStack}
         options={{ tabBarLabel: 'Properties' }}
-      />
-
-      <Tab.Screen
-        name="Profile"
-        component={InvestorProfileScreen}
-        options={{ tabBarLabel: 'Profile' }}
       />
     </Tab.Navigator>
   );

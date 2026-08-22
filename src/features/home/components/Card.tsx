@@ -1,77 +1,102 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { FeaturedCardProps } from '../../../shared/types';
+import { ArrowUpRight } from 'lucide-react-native';
 
 const Card: React.FC<FeaturedCardProps> = ({
   title,
   description,
   investmentRange,
-  tag, // ignored (no tag in this design)
+  tag,
   imageSource,
   onPress,
-  buttonText, // ignored
-  onPressDetails, // ignored
   containerClassName = '',
   imageClassName = '',
-  tagContainerClassName = '', // unused
-  tagTextClassName = '',      // unused
+  tagTextClassName = '',
   titleClassName = '',
   descriptionClassName = '',
   investmentClassName = '',
-  detailsButtonClassName = '', // unused
-  detailsTextClassName = '',   // unused
+  overlayClassName = 'bg-black/20',    // new prop with default
 }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={onPress}
-      className={`bg-white z-50 rounded-xl mx-2 my-2 overflow-hidden shadow-md shadow-black/10 ${containerClassName}`}
+      className={`bg-white rounded-2xl mx-2 my-2 overflow-hidden ${containerClassName}`}
+      style={{
+        shadowColor: '#0A1A3D',
+        shadowOpacity: 0.12,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 8 },
+        elevation: 4,
+      }}
     >
-      {/* Image - NOT full width. Has margins on sides and top */}
-      {imageSource && (
-        <Image
-          source={imageSource}
-          className={`rounded-xl h-44 ${imageClassName}`}
-          resizeMode="cover"
-          resizeMethod="resize"
-          onError={(e) => {
-            console.log('[Card] ImageError:', JSON.stringify(imageSource).slice(0, 120), e.nativeEvent?.error);
-          }}
-        />
+      {imageSource ? (
+        <View className="relative w-full h-full">
+          <Image
+            source={imageSource}
+            className={`w-full h-full ${imageClassName}`}
+            resizeMode="cover"
+            onError={(e) => {
+              console.log('[Card] ImageError:', JSON.stringify(imageSource).slice(0, 120), e.nativeEvent?.error);
+            }}
+          />
+
+          <View className={`absolute w-full h-full ${overlayClassName}`} />
+
+          <TouchableOpacity
+            className="absolute bg-black p-4 rounded-xl bottom-2 right-3"
+            activeOpacity={0.8}
+            onPress={onPress}
+          >
+            <ArrowUpRight color="white" />
+          </TouchableOpacity>
+
+          {/* Tag chip */}
+          {tag && (
+            <View className="absolute top-3 left-3">
+              <Text
+                className={`text-white font-lato-bold text-[10px] tracking-[1.5px] uppercase ${tagTextClassName}`}
+              >
+                {tag}
+              </Text>
+            </View>
+          )}
+
+          {/* Overlaid content */}
+          <View className="absolute left-4 right-4 bottom-3.5">
+            {investmentRange && (
+              <Text
+                className={`text-amber-500 font-lato-bold text-sm mb-1 ${investmentClassName}`}
+              >
+                {investmentRange}
+              </Text>
+            )}
+            {title && (
+              <Text
+                numberOfLines={1}
+                className={`text-white font-lato-black text-lg leading-6 ${titleClassName}`}
+              >
+                {title}
+              </Text>
+            )}
+            {description && (
+              <Text
+                numberOfLines={2}
+                className={`text-white/80 text-[11px] font-lato leading-4 mt-1 ${descriptionClassName}`}
+              >
+                {description}
+              </Text>
+            )}
+          </View>
+        </View>
+      ) : (
+        <View className="flex-1 items-center justify-center bg-neutral-200 px-4">
+          <Text numberOfLines={1} className="text-neutral-500 font-lato text-sm">
+            {title}
+          </Text>
+        </View>
       )}
-
-      <View className="px-4 pb-4 pt-2">
-        {tag && (
-          <Text className="text-neutral-500 text-xs font-lato-bold uppercase mb-0.5">
-            {tag}
-          </Text>
-        )}
-
-
-        <Text
-          numberOfLines={1}
-          className={`text-2xl font-lato-bold text-neutral-800 mt-0.5 ${titleClassName}`}
-        >
-          {title}
-        </Text>
-
-        {investmentRange && (
-          <Text
-            className={`text-xl font-lato-light text-neutral-900 ${investmentClassName}`}
-          >
-            {investmentRange}
-          </Text>
-        )}
-
-        {description && (
-          <Text
-            numberOfLines={2}
-            className={`text-[12px] font-normal text-neutral-600 mt-0.5 ${descriptionClassName}`}
-          >
-            {description}
-          </Text>
-        )}
-      </View>
     </TouchableOpacity>
   );
 };

@@ -4,7 +4,7 @@ import { AuthLayout } from '../../../shared/layouts/AuthLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../../shared/types/navigation';
+import type { AuthStackParamList, RootStackParamList } from '../../../shared/types/navigation';
 import { useAuth } from '../../../shared/auth/AuthContext';
 import { ArrowLeft } from 'lucide-react-native';
 
@@ -24,6 +24,8 @@ export function LoginScreen() {
     setLoading(true);
     try {
       await login(email.trim(), password, role ?? 'investor');
+      const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+      rootNav?.reset({ index: 0, routes: [{ name: role === 'brand' ? 'BrandDrawer' : 'InvestorDrawer' }] });
     } catch (e: any) {
       const msg =
         e?.response?.data?.message || e?.message || 'Login failed. Please try again.';
@@ -38,7 +40,7 @@ export function LoginScreen() {
       {role && (
         <View className="absolute top-6 left-6 right-6 flex-row items-center justify-between z-50">
           <TouchableOpacity
-            onPress={() => navigation.replace('RoleSelection')}
+            onPress={() => navigation.replace('Signup', { role })}
             activeOpacity={0.7}
             className="flex-row items-center gap-2"
           >
@@ -57,7 +59,7 @@ export function LoginScreen() {
 
       <View className="flex-1 px-6 pt-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <View className="mb-8">
-          <Text className="text-center text-primary-900 text-3xl font-lato-bold">FranchisePk</Text>
+          <Text className="text-center text-primary-900 text-3xl font-lato-bold">Franchise Pakistan</Text>
           <Text className="text-center text-neutral-600 text-base mt-1">
             Premium access to global expansion.
           </Text>

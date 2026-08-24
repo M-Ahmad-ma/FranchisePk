@@ -14,7 +14,6 @@ import { useHome } from '../../../shared/hooks/useHome';
 import { useInternationalCompanies } from '../../../shared/hooks/useCompanies';
 import { imageUrl } from '../../../shared/api/imageUrl';
 import { Log } from '../../../shared/utils/Log';
-import { Screen, screensEnabled } from 'react-native-screens';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import { TestimonialsSection } from '../components/TestimonialsSection';
 import { INTERNATIONAL_SLUG } from '../../../shared/utils/franchise';
@@ -96,7 +95,7 @@ export function HomeScreen() {
             <View className="flex-row w-full flex-wrap -mx-1.5">
               <View className="w-1/2 px-1 mb-1">
                 <QuickAction
-                  icon={<Home />}
+                  icon={<Home color="#1C4878" />}
                   title="Property"
                   description="Explore property"
                   containerClassName="w-full bg-primary-300"
@@ -111,7 +110,7 @@ export function HomeScreen() {
 
               <View className="w-1/2 px-1 mb-1">
                 <QuickAction
-                  icon={<Building2 />}
+                  icon={<Building2 color="#1C4878" />}
                   title="Companies"
                   description="Explore trusted franchise brands"
                   containerClassName="w-full bg-secondary-300"
@@ -125,7 +124,7 @@ export function HomeScreen() {
 
               <View className="w-1/2 px-1 mb-1">
                 <QuickAction
-                  icon={<Earth />}
+                  icon={<Earth color="#1C4878" />}
                   title="International"
                   description="Discover global franchise opportunities"
                   containerClassName="w-full bg-tertiary-300"
@@ -135,7 +134,7 @@ export function HomeScreen() {
 
               <View className="w-1/2 px-1 mb-1">
                 <QuickAction
-                  icon={<Store />}
+                  icon={<Store color="#1C4878" />}
                   title="Become a Franchise"
                   description="Start your journey as a franchise partner"
                   containerClassName="w-full bg-neutral-400"

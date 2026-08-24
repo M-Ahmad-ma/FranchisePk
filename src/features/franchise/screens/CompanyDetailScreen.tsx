@@ -165,7 +165,7 @@ export function CompanyDetailScreen() {
           .then((d) => {
             if (Array.isArray(d.cities)) setCities(d.cities);
           })
-          .catch(() => {});
+          .catch(() => { });
       }
     }
   }, [sheetVisible, cities.length]);
@@ -588,7 +588,7 @@ export function CompanyDetailScreen() {
                     title={item.co_name}
                     imageSource={getCompanyCoverImage(item)}
                     investmentRange={item.co_investment_range}
-                    containerClassName='w-[250px] mr-3'
+                    containerClassName='w-[250px] h-[190px] mr-3'
                     onPress={() => navigation.replace('CompanyDetail', { slug: item.co_slug })}
                   />
                 ))}

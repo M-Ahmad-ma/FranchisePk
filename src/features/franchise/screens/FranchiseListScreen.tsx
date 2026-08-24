@@ -16,6 +16,7 @@ import {
   getCompanyCoverImage,
   ALL_SECTORS,
 } from '../../../shared/utils/franchise';
+import { Log } from '../../../shared/utils/Log';
 
 const PAGE_SIZE = 8;
 
@@ -38,8 +39,12 @@ export function FranchiseListScreen() {
   }, [route.params?.filter]);
 
   const companies = data?.companies ?? [];
+
+  Log("companies", companies)
   const chips = buildCategoryChips(data?.categories ?? []);
   const visibleCompanies = paginate(companies, page, PAGE_SIZE);
+
+  Log("visibleCompanies", visibleCompanies)
   const hasMoreItems = hasMore(companies, page, PAGE_SIZE);
 
   useEffect(() => {
@@ -69,6 +74,7 @@ export function FranchiseListScreen() {
             description={item.co_descp}
             investmentRange={item.co_investment_range}
             imageSource={getCompanyCoverImage(item)}
+            containerClassName="h-[150px]"
             onPress={() =>
               navigation.navigate('CompanyDetail', { slug: item.co_slug })
             }

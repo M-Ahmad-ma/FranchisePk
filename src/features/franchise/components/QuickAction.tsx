@@ -12,7 +12,7 @@ interface QuickActionProp {
 }
 
 function QuickAction({ icon, title, description, bgcolor, containerClassName, onPress }: QuickActionProp) {
-  const baseClasses = `rounded-2xl h-48 ml-2 w-1/2 mb-1`;
+  const baseClasses = `rounded-3xl h-40 ml-2 w-1/2 mb-1`;
   const bgClass = bgcolor ? `bg-${bgcolor}` : '';
   const containerCls = containerClassName || '';
 

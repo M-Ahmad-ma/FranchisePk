@@ -27,7 +27,7 @@ const FinancialStatsCard: React.FC<FinancialStatsCardProps> = ({
   ];
 
   return (
-    <View className={`p-4 shadow-sm ${containerClassName}`} >
+    <View className={`p-1 shadow-sm ${containerClassName}`} >
       {stats.map((stat, index) => (
         <View
           key={index}
@@ -46,7 +46,7 @@ const FinancialStatsCard: React.FC<FinancialStatsCardProps> = ({
             </Text>
           </View>
           <View className="flex flex-row items-end justify-between">
-            <Text className="text-base font-lato text-primary-900 mt-9">
+            <Text className="text-base font-lato text-primary-900 mt-6">
               {stat.value}
             </Text>
             {icons?.[index] ?? icon ?? null}

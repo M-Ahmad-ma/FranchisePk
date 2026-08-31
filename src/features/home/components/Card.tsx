@@ -45,7 +45,7 @@ const Card: React.FC<FeaturedCardProps> = ({
           <View className={`absolute w-full h-full ${overlayClassName}`} />
 
           <TouchableOpacity
-            className="absolute bg-black p-4 rounded-xl bottom-2 right-3"
+            className="absolute  p-4 rounded-xl top-1 right-2"
             activeOpacity={0.8}
             onPress={onPress}
           >

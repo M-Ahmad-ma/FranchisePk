@@ -47,12 +47,12 @@ export function TeamScreen() {
       if (cities.length === 0) {
         companyService.getCities().then((d) => {
           if (Array.isArray(d.cities)) setCities(d.cities);
-        }).catch(() => {});
+        }).catch(() => { });
       }
       if (companies.length === 0) {
         companyService.getCompanies().then((d) => {
           if (Array.isArray(d.companies)) setCompanies(d.companies);
-        }).catch(() => {});
+        }).catch(() => { });
       }
     }
   }, [sheetVisible, cities.length, companies.length]);
@@ -114,7 +114,7 @@ export function TeamScreen() {
   const memberName = (m: TeamEmployee) =>
     [m.u_firstname, m.u_lastname].filter(Boolean).join(' ').trim();
 
-  const openLink = (url: string) => Linking.openURL(url).catch(() => {});
+  const openLink = (url: string) => Linking.openURL(url).catch(() => { });
 
   return (
     <MainLayout>
@@ -165,7 +165,7 @@ export function TeamScreen() {
                 name={name}
                 role={role}
                 image={image ? { uri: image } : { uri: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop' }}
-                containerClassName='mt-5'
+                containerClassName='mt-5 bg-transparent'
                 onContact={() => handleContact(emp)}
               />
             );

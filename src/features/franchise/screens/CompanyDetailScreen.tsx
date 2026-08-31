@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   ScrollView,
   Text,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
+  useWindowDimensions,
 } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -38,7 +39,6 @@ import {
   User,
   CheckCircle2,
 } from 'lucide-react-native';
-import FinancialStatsCard from '../components/FrachiseDetailCard';
 import Card from '../../home/components/Card';
 import Button from '../../../shared/components/Button';
 import BottomSheet from '../../../shared/components/BottomSheet';
@@ -51,6 +51,7 @@ import { Skeleton } from '../../../shared/components/Skeleton';
 import { HTMLContentView } from '../../../shared/components/HTMLContentView';
 import * as companyService from '../../../shared/api/companyService';
 import type { City } from '../../../shared/api/types';
+import { Animated } from 'react-native';
 
 function extractVideoId(url: string): string | null {
   try {
@@ -110,12 +111,15 @@ function FactGrid({ facts }: { facts: Fact[] }) {
       {facts.map((fact, i) => (
         <View key={`${fact.label}-${i}`} className="w-1/2 px-1 mb-2">
           <View className="rounded-xl border border-neutral-200 bg-light p-3">
-            <Text className="text-[10px] uppercase tracking-[0.12em] text-neutral-600 font-lato-bold">
-              {fact.label}
-            </Text>
-            <View className="flex-row items-center gap-1.5 mt-1.5">
+            <View className='flex items-center gap-1 flex-row'>
               {fact.icon}
-              <Text className="text-neutral-900 font-lato-bold text-base" numberOfLines={1}>
+              <Text className="text-[10px] uppercase tracking-[0.12em] text-neutral-900 font-lato-bold">
+                {fact.label}
+              </Text>
+            </View>
+
+            <View className="flex-row items-center gap-1.5 mt-1.5">
+              <Text className="text-neutral-700 font-lato-light text-base" numberOfLines={1}>
                 {fact.value}
               </Text>
             </View>
@@ -131,6 +135,8 @@ export function CompanyDetailScreen() {
     useNavigation<NativeStackNavigationProp<FranchiseStackParamList>>();
   const route = useRoute<RouteProp<FranchiseStackParamList, 'CompanyDetail'>>();
   const { slug } = route.params;
+  const { height } = useWindowDimensions()
+
 
   const { data, isLoading, isError } = useCompany(slug);
   const company = data?.company;
@@ -227,6 +233,10 @@ export function CompanyDetailScreen() {
       .map((uri) => ({ uri }));
   }, [company?.company_images]);
 
+
+  Log("images", heroImages)
+
+
   const videoId = useMemo(() => {
     if (company?.co_video_url) return extractVideoId(company.co_video_url);
     if (typeof company?.video_link === 'string' && /^[\w-]{11}$/.test(company.video_link)) {
@@ -244,22 +254,31 @@ export function CompanyDetailScreen() {
 
   const facts: Fact[] = [];
   if (company?.company_year && company.company_year !== '0') {
-    facts.push({ label: 'Established', icon: <Calendar size={15} color="#436CF5" />, value: company.company_year });
+    facts.push({ label: 'Established', icon: <Calendar size={15} color="#1C4878" />, value: company.company_year });
   }
   if (company?.franchise_years && company.franchise_years !== '0') {
-    facts.push({ label: 'Franchising since', icon: <BadgeCheck size={15} color="#00A572" />, value: company.franchise_years });
+    facts.push({ label: 'Franchising since', icon: <BadgeCheck size={15} color="#1C4878" />, value: company.franchise_years });
   }
   if (company?.co_security_fee != null && company.co_security_fee !== '') {
-    facts.push({ label: 'Security fee', icon: <ShieldCheck size={15} color="#E0409A" />, value: pkr(company.co_security_fee) });
+    facts.push({ label: 'Security fee', icon: <ShieldCheck size={15} color="#1C4878" />, value: pkr(company.co_security_fee) });
   }
   if (company?.commision_type && String(company.commision_type).trim()) {
-    facts.push({ label: 'Commission', icon: <Percent size={15} color="#26C289" />, value: String(company.commision_type) });
+    facts.push({ label: 'Commission', icon: <Percent size={15} color="#1C4878" />, value: String(company.commision_type) });
   }
   if (Number(company?.franchise_turnover) > 0) {
-    facts.push({ label: 'Franchise turnover', icon: <TrendingUp size={15} color="#436CF5" />, value: pkr(company?.franchise_turnover) });
+    facts.push({ label: 'Franchise turnover', icon: <TrendingUp size={15} color="#1C4878" />, value: pkr(company?.franchise_turnover) });
   }
   if (Number(company?.average_turnover) > 0) {
-    facts.push({ label: 'Avg. turnover', icon: <TrendingUp size={15} color="#00A572" />, value: pkr(company?.average_turnover) });
+    facts.push({ label: 'Avg. turnover', icon: <TrendingUp size={15} color="#1C4878" />, value: pkr(company?.average_turnover) });
+  }
+  if (company?.co_total_investment != null && company.co_total_investment !== '') {
+    facts.push({ label: 'Total Investment', icon: <DollarSign size={15} color="#1C4878" />, value: pkr(company.co_total_investment) });
+  }
+  if (company?.co_franchise_fee != null && company.co_franchise_fee !== '') {
+    facts.push({ label: 'Franchise Fee', icon: <DollarSign size={15} color="#1C4878" />, value: pkr(company.co_franchise_fee) });
+  }
+  if (company?.co_royalty_fee != null && company.co_royalty_fee !== '') {
+    facts.push({ label: 'Royalty Fee', icon: <Percent size={15} color="#1C4878" />, value: String(company.co_royalty_fee) });
   }
 
   const aboutHtml =
@@ -268,7 +287,7 @@ export function CompanyDetailScreen() {
     ) ?? '';
   const aboutText = meaningfulText(aboutHtml);
   const aboutHasHtml = aboutHtml.includes('<');
-  const aboutExceeds = aboutHasHtml || aboutText.length > 180;
+  const aboutExceeds = aboutHasHtml || aboutText.length > 100;
   const visibleAbout = expanded || !aboutExceeds ? aboutText : `${aboutText.slice(0, 180).trimEnd()}…`;
 
   const contacts: any[] = (company?.company_contacts ?? []).filter(
@@ -293,6 +312,9 @@ export function CompanyDetailScreen() {
   const websiteShort = websiteLabel.length > 28 ? `${websiteLabel.slice(0, 28)}…` : websiteLabel;
 
   const openLink = (url: string) => Linking.openURL(url).catch(() => { });
+
+
+
 
   if (isLoading) {
     return (
@@ -329,7 +351,8 @@ export function CompanyDetailScreen() {
 
   return (
     <MainLayout showHeader={false}>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}
+      >
         <View className="relative">
           <Carousel
             images={heroImages}
@@ -388,19 +411,6 @@ export function CompanyDetailScreen() {
             )}
           </View>
 
-          <View className="mt-5">
-            <FinancialStatsCard
-              totalInvestment={pkr(company.co_total_investment) || 'N/A'}
-              franchiseFee={pkr(company.co_franchise_fee) || 'N/A'}
-              royaltyFee={company.co_royalty_fee || 'N/A'}
-              icons={[
-                <DollarSign size={14} color="#436CF5" />,
-                <FileText size={14} color="#E0409A" />,
-                <Percent size={14} color="#26C289" />,
-              ]}
-            />
-          </View>
-
           <FactGrid facts={facts} />
 
           {aboutText && (
@@ -444,7 +454,7 @@ export function CompanyDetailScreen() {
               />
               <View className="absolute inset-0 bg-black/35 items-center justify-center">
                 <View className="bg-white/95 rounded-full p-4">
-                  <Play size={22} color="#0039B5" fill="#0039B5" />
+                  <Play size={22} color="#386092" fill="#386092" />
                 </View>
               </View>
               <View className="absolute bottom-3 left-3 bg-black/50 px-3 py-1.5 rounded-lg">
@@ -463,7 +473,7 @@ export function CompanyDetailScreen() {
                     className="flex-row items-center gap-3 px-4 py-3.5 border-b border-neutral-100"
                   >
                     <View className="w-9 h-9 rounded-full bg-secondary-200 items-center justify-center">
-                      <Phone size={16} color="#436CF5" />
+                      <Phone size={16} color="#386092" />
                     </View>
                     <View className="flex-1">
                       <Text className="text-[10px] uppercase tracking-[0.12em] text-neutral-600 font-lato-bold">Office</Text>
@@ -479,7 +489,7 @@ export function CompanyDetailScreen() {
                     className="flex-row items-center gap-3 px-4 py-3.5 border-b border-neutral-100"
                   >
                     <View className="w-9 h-9 rounded-full bg-secondary-200 items-center justify-center">
-                      {isInstagram ? <Camera size={16} color="#436CF5" /> : <Globe size={16} color="#436CF5" />}
+                      {isInstagram ? <Camera size={16} color="#386092" /> : <Globe size={16} color="#386092" />}
                     </View>
                     <View className="flex-1">
                       <Text className="text-[10px] uppercase tracking-[0.12em] text-neutral-600 font-lato-bold">
@@ -497,7 +507,7 @@ export function CompanyDetailScreen() {
                   <View key={c.con_id ?? c.con_p_name} className="px-4 py-3.5 border-b border-neutral-100">
                     <View className="flex-row items-center gap-3">
                       <View className="w-9 h-9 rounded-full bg-secondary-200 items-center justify-center">
-                        <User size={16} color="#436CF5" />
+                        <User size={16} color="#386092" />
                       </View>
                       <View className="flex-1">
                         {c.con_p_name ? (
@@ -515,7 +525,7 @@ export function CompanyDetailScreen() {
                             onPress={() => openLink(`tel:${String(c.con_mobilenumber).replace(/\s+/g, '')}`)}
                             className="flex-row items-center gap-1.5 bg-secondary-200 rounded-full px-3 py-1.5"
                           >
-                            <Phone size={12} color="#436CF5" />
+                            <Phone size={12} color="#386092" />
                             <Text className="text-primary-700 text-xs font-lato-bold">{c.con_mobilenumber}</Text>
                           </TouchableOpacity>
                         )}
@@ -524,7 +534,7 @@ export function CompanyDetailScreen() {
                             onPress={() => openLink(`mailto:${c.con_email}`)}
                             className="flex-row items-center gap-1.5 bg-secondary-200 rounded-full px-3 py-1.5"
                           >
-                            <Mail size={12} color="#436CF5" />
+                            <Mail size={12} color="#386092" />
                             <Text className="text-primary-700 text-xs font-lato-bold">{c.con_email}</Text>
                           </TouchableOpacity>
                         ) : c.con_email ? (
@@ -532,7 +542,7 @@ export function CompanyDetailScreen() {
                             onPress={() => openLink(String(c.con_email))}
                             className="flex-row items-center gap-1.5 bg-secondary-200 rounded-full px-3 py-1.5"
                           >
-                            <Camera size={12} color="#436CF5" />
+                            <Camera size={12} color="#386092" />
                             <Text className="text-primary-700 text-xs font-lato-bold">Social link</Text>
                           </TouchableOpacity>
                         ) : null}
@@ -569,7 +579,7 @@ export function CompanyDetailScreen() {
                         onPress={() => openLink(`tel:${String(e.u_contact).replace(/[^\d+]/g, '')}`)}
                         className="bg-secondary-200 rounded-full p-2.5"
                       >
-                        <Phone size={16} color="#436CF5" />
+                        <Phone size={16} color="#386092" />
                       </TouchableOpacity>
                     )}
                   </View>
@@ -598,15 +608,13 @@ export function CompanyDetailScreen() {
         </View>
       </ScrollView>
 
-      <View className='bg-white flex items-end p-3 border-t-[0.8px] border-neutral-200'>
-        <Button
-          title='Submit request'
-          className='w-fit py-3 px-4'
-          onPress={() => setSheetVisible(true)}
-          icon={<ChevronRight color="white" />}
-          iconPosition='right'
-        />
-      </View>
+      <Button
+        title='Submit request'
+        className='w-1/2 absolute right-3 bottom-3 py-3 px-4'
+        onPress={() => setSheetVisible(true)}
+        icon={<ChevronRight color="white" />}
+        iconPosition='right'
+      />
 
       <BottomSheet visible={sheetVisible} onClose={() => setSheetVisible(false)}>
         {submitted ? (

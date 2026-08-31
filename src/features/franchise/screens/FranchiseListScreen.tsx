@@ -6,7 +6,7 @@ import type { RouteProp } from '@react-navigation/native';
 import type { FranchiseStackParamList } from '../../../shared/types/navigation';
 import { useEffect, useState } from 'react';
 import Card from '../../home/components/Card';
-import ChipList from '../../../shared/components/ChipList';
+import ChipList, { ChipItem } from '../../../shared/components/ChipList';
 import { useCompanyDirectory } from '../../../shared/hooks/useCompanies';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import {
@@ -41,7 +41,15 @@ export function FranchiseListScreen() {
   const companies = data?.companies ?? [];
 
   Log("companies", companies)
-  const chips = buildCategoryChips(data?.categories ?? []);
+  Log("filter", selected)
+  const chips: ChipItem[] = [
+    {
+      c_id: '1',
+      c_slug: ALL_SECTORS,
+      c_name: 'All',
+    },
+    ...(data?.categories ?? []),
+  ];
   const visibleCompanies = paginate(companies, page, PAGE_SIZE);
 
   Log("visibleCompanies", visibleCompanies)
@@ -51,8 +59,8 @@ export function FranchiseListScreen() {
     setIsLoadingMore(false);
   }, [page]);
 
-  const onSelectChip = (chip: { id: string; label: string }) => {
-    setSelected(chip.id);
+  const onSelectChip = (chip: ChipItem) => {
+    setSelected(chip.c_slug);
     setPage(1);
   };
 

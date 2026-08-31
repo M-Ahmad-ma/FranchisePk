@@ -6,24 +6,30 @@ import { Mail } from "lucide-react-native"
 
 function TeamCard({ image, name, role, containerClassName, onContact }: TeamCardProps) {
   return (
-    <View className={`bg-white rounded-lg p-4 ${containerClassName}`}>
+    <View className={`flex flex-row bg-white rounded-xl items-center gap-10 p-4 ${containerClassName}`} style={{
+      shadowColor: "#000",
+      elevation: 2
+    }}>
 
-      <Image
-        source={image}
-        className="w-full h-56 rounded-lg"
-        resizeMode="cover"
-      />
-
-      <View className="border-b-[0.5px] pb-1 mt-6  border-b-primary-400">
-        <Text className="text-2xl font-lato-bold">{name}</Text>
-        <Text className="font-lato text-lg text-neutral-700">{role}</Text>
+      <View className="w-24 h-24 rounded-full overflow-hidden">
+        <Image
+          source={image}
+          className="w-24 h-24 rounded-lg"
+          resizeMode="cover"
+          alt="image"
+        />
       </View>
 
-      <View className="mt-5 flex items-center flex-row gap-4">
-        <Button title="Contact" className="w-1/2" variant="primary" onPress={onContact} />
-        <TouchableOpacity>
-          <Mail color="#5279AC" />
-        </TouchableOpacity>
+
+      <View>
+        <View className="border-b-[0.5px] pb-1 mt-6  border-b-primary-400">
+          <Text className="text-2xl font-lato-bold">{name}</Text>
+          <Text className="font-lato text-lg text-neutral-700">{role}</Text>
+        </View>
+
+        <View className="mt-5 ">
+          <Button title="Contact" className="w-[80%]" variant="primary" onPress={onContact} />
+        </View>
       </View>
     </View>
   )

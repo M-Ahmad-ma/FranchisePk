@@ -2,9 +2,10 @@ import React from 'react';
 import { ScrollView, View } from 'react-native';
 import Chip from './Chip';
 
-interface ChipItem {
-  id: string;
-  label: string;
+export interface ChipItem {
+  c_id: string;
+  c_name: string;
+  c_slug: string;
 }
 
 interface ChipListProps {
@@ -34,9 +35,9 @@ const ChipList: React.FC<ChipListProps> = ({
       <View className={`flex-row items-center ${containerClassName}`}>
         {items.map((item) => (
           <Chip
-            key={item.id}
-            label={item.label}
-            selected={item.id === selectedId}
+            key={item.c_id}
+            label={item.c_name}
+            selected={item.c_slug === selectedId}
             onPress={() => onSelect?.(item)}
             {...chipProps}
           />

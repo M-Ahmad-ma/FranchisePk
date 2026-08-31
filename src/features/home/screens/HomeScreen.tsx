@@ -24,6 +24,51 @@ export function HomeScreen() {
 
   const navigation = useNavigation<BottomTabNavigationProp<InvestorTabParamList>>();
 
+  const quickActions = [
+    {
+      icon: <Home color="#1C4878" />,
+      title: "Property",
+      description: "Explore property",
+      containerClassName: "bg-primary-300",
+      onPress: () =>
+        navigation.navigate("Properties", {
+          screen: "PropertiesList",
+        }),
+    },
+    {
+      icon: <Building2 color="#1C4878" />,
+      title: "Companies",
+      description: "Explore trusted franchise brands",
+      containerClassName: "bg-secondary-300",
+      onPress: () =>
+        navigation.navigate("FranchiseDirectory", {
+          screen: "FranchiseList",
+        }),
+    },
+    {
+      icon: <Earth color="#1C4878" />,
+      title: "International",
+      description: "Discover global franchise opportunities",
+      containerClassName: "bg-tertiary-300",
+      onPress: () =>
+        navigation.navigate("FranchiseDirectory", {
+          screen: "FranchiseList",
+          params: { filter: "international_franchises" }
+        })
+      ,
+    },
+    {
+      icon: <Store color="#1C4878" />,
+      title: "Become a Franchise",
+      description: "Start your journey as a franchise partner",
+      containerClassName: "bg-neutral-400",
+      onPress: () =>
+        navigation.navigate("Auth", {
+          screen: "Signup",
+        }),
+    },
+  ];
+
   const homeQuery = useHome();
   const intlQuery = useInternationalCompanies();
 
@@ -34,12 +79,14 @@ export function HomeScreen() {
   const internationalCompanies = intlQuery.data?.companies || [];
   const featuredProperties = homeQuery.data?.property || [];
   const testimonials = homeQuery.data?.testimonials || [];
+  const categories = homeQuery?.data?.categories || [];
 
   // TODO remove it later 
   Log("homeQuery", homeQuery)
   Log("featured companies", featuredCompanies)
   Log("property", featuredProperties[0]?.pMessage)
   Log("testimonials", testimonials)
+  Log("Categories", homeQuery?.data?.categories)
 
   const adverts = homeQuery.data?.adverts;
   const advertsImages: { uri: string }[] = (adverts ?? [])
@@ -73,6 +120,7 @@ export function HomeScreen() {
               autoPlay={true}
               height={200}
               showDots={true}
+              card={false}
               className='mb-3'
               interval={4000}
               cardShadow={false}
@@ -90,62 +138,36 @@ export function HomeScreen() {
             />
           </View>
 
+          <ChipList items={categories}
+            onSelect={(item) => navigation.navigate("FranchiseDirectory", {
+              screen: "FranchiseList",
+              params: {
+                filter: item.c_slug
+              }
+            })} />
 
-          <View className="px-2 mt-3">
-            <View className="flex-row w-full flex-wrap -mx-1.5">
-              <View className="w-1/2 px-1 mb-1">
-                <QuickAction
-                  icon={<Home color="#1C4878" />}
-                  title="Property"
-                  description="Explore property"
-                  containerClassName="w-full bg-primary-300"
-                  bgcolor=""
-                  onPress={() =>
-                    navigation.navigate("Properties", {
-                      screen: "PropertiesList",
-                    })
-                  }
-                />
-              </View>
 
-              <View className="w-1/2 px-1 mb-1">
-                <QuickAction
-                  icon={<Building2 color="#1C4878" />}
-                  title="Companies"
-                  description="Explore trusted franchise brands"
-                  containerClassName="w-full bg-secondary-300"
-                  onPress={() =>
-                    navigation.navigate("FranchiseDirectory", {
-                      screen: "FranchiseList",
-                    })
-                  }
-                />
-              </View>
-
-              <View className="w-1/2 px-1 mb-1">
-                <QuickAction
-                  icon={<Earth color="#1C4878" />}
-                  title="International"
-                  description="Discover global franchise opportunities"
-                  containerClassName="w-full bg-tertiary-300"
-                  onPress={() => console.log("Companies pressed")}
-                />
-              </View>
-
-              <View className="w-1/2 px-1 mb-1">
-                <QuickAction
-                  icon={<Store color="#1C4878" />}
-                  title="Become a Franchise"
-                  description="Start your journey as a franchise partner"
-                  containerClassName="w-full bg-neutral-400"
-                  onPress={() =>
-                    navigation.navigate("Auth", {
-                      screen: "Signup",
-                    })
-                  }
-                />
-              </View>
-            </View>
+          <View className="mt-3">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerClassName="px-1"
+            >
+              {quickActions.map((action, index) => (
+                <View
+                  key={action.title}
+                  className={`${index !== quickActions.length - 1 ? "" : ""}`}
+                >
+                  <QuickAction
+                    icon={action.icon}
+                    title={action.title}
+                    description={action.description}
+                    containerClassName={`${action.containerClassName}`}
+                    onPress={action.onPress}
+                  />
+                </View>
+              ))}
+            </ScrollView>
           </View>
 
           <View className='pl-4'>

@@ -30,7 +30,7 @@ export type InvestorTabParamList = {
   Home: undefined;
   FranchiseDirectory: NavigatorScreenParams<FranchiseStackParamList>;
   Properties: NavigatorScreenParams<PropertiesStackParamList>;
-  Dashboard: undefined;
+  ContactUs: undefined;
 };
 
 export type BrandDrawerParamList = {

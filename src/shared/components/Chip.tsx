@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text } from 'react-native';
+import { Log } from '../utils/Log';
 
 interface ChipProps {
   label: string;

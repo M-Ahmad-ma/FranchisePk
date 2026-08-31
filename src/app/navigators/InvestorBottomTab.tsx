@@ -1,11 +1,12 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-import { Home, Search, Building2, LayoutDashboard, Compass } from 'lucide-react-native';
+import { Home, Building2, Compass, CircleQuestionMark } from 'lucide-react-native';
 import { HomeScreen } from '../../features/home/screens/HomeScreen';
 import { FranchiseStack } from './FranchiseStack';
 import { PropertiesStack } from './PropertiesStack';
 import type { InvestorTabParamList } from '../../shared/types/navigation';
 import { View, Text } from 'react-native';
+import { ContactUs } from '../../features/investor/screens/ContactUs';
 
 function PlaceholderScreen({ name }: { name: string }) {
   return (
@@ -21,7 +22,7 @@ const tabIcons: Record<keyof InvestorTabParamList, (color: string, size: number)
   Home: (color, size) => <Home color={color} size={size} />,
   FranchiseDirectory: (color, size) => <Compass color={color} size={size} />,
   Properties: (color, size) => <Building2 color={color} size={size} />,
-  Dashboard: (color, size) => <LayoutDashboard color={color} size={size} />,
+  ContactUs: (color, size) => <CircleQuestionMark color={color} size={size} />
 };
 
 export function InvestorBottomTab() {
@@ -73,6 +74,12 @@ export function InvestorBottomTab() {
         component={PropertiesStack}
         options={{ tabBarLabel: 'Properties' }}
       />
+      <Tab.Screen
+        name="ContactUs"
+        component={ContactUs}
+        options={{ tabBarLabel: 'ContactUs' }}
+      />
+
     </Tab.Navigator>
   );
 }

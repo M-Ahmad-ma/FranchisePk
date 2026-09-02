@@ -1,5 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
-import { FranshiseChip, FranshiseFilterChip, PropertyCardProps, TeamCardProps, Partner } from '../types';
+import { FranshiseFilterChip, PropertyCardProps, TeamCardProps, Partner } from '../types';
+import type { ReactNode } from 'react';
+import { Home, Building2, Globe, Store } from 'lucide-react-native';
 
 export type RelatedFranchise = {
   id: string;
@@ -7,6 +9,7 @@ export type RelatedFranchise = {
   title: string;
   price: string;
 };
+
 
 export type FranchiseItem = {
   id: number;
@@ -32,6 +35,13 @@ export type FranchiseItem = {
 };
 
 
+type quickActions = {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  containerClassName: string;
+  onPress: () => void
+}
 
 export const franchiseFilters: FranshiseFilterChip[] = [
   { id: 'coffee', label: 'Coffee & Tea' },
@@ -623,5 +633,51 @@ export const partnersData: Partner[] = [
     name: 'Hilton Hotels',
     logo: { uri: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=200&h=200&fit=crop' },
     description: 'Premium hospitality brand with 7,000+ properties worldwide.',
+  },
+];
+
+
+export const quickActions = (navigation: any): quickActions[] => [
+  {
+    icon: <Home color="#1C4878" />,
+    title: "Property",
+    description: "Explore property",
+    containerClassName: "bg-primary-300",
+    onPress: () =>
+      navigation.navigate("Properties", {
+        screen: "PropertiesList",
+      }),
+  },
+  {
+    icon: <Building2 color="#1C4878" />,
+    title: "Companies",
+    description: "Explore trusted franchise brands",
+    containerClassName: "bg-secondary-300",
+    onPress: () =>
+      navigation.navigate("FranchiseDirectory", {
+        screen: "FranchiseList",
+      }),
+  },
+  {
+    icon: <Globe color="#1C4878" />,
+    title: "International",
+    description: "Discover global franchise opportunities",
+    containerClassName: "bg-tertiary-300",
+    onPress: () =>
+      navigation.navigate("FranchiseDirectory", {
+        screen: "FranchiseList",
+        params: { filter: "international_franchises" }
+      })
+    ,
+  },
+  {
+    icon: <Store color="#1C4878" />,
+    title: "Become a Franchise",
+    description: "Start your journey as a franchise partner",
+    containerClassName: "bg-neutral-400",
+    onPress: () =>
+      navigation.navigate("Auth", {
+        screen: "Signup",
+      }),
   },
 ];

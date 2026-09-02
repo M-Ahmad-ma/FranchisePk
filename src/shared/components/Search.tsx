@@ -1,5 +1,5 @@
 // src/components/Search.tsx
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, TextInput, TouchableOpacity, TextInputProps } from 'react-native';
 import { Search as SearchIcon, X } from 'lucide-react-native';
 
@@ -45,20 +45,24 @@ const Search: React.FC<SearchProps> = ({
   const [internalValue, setInternalValue] = useState('');
   const isControlled = externalValue !== undefined;
   const currentValue = isControlled ? externalValue : internalValue;
+  const valueRef = useRef(currentValue);
+  valueRef.current = currentValue;
 
   const handleChangeText = (text: string) => {
+    valueRef.current = text;
     if (!isControlled) setInternalValue(text);
     onChangeText?.(text);
   };
 
   const handleClear = () => {
+    valueRef.current = '';
     if (!isControlled) setInternalValue('');
     onChangeText?.('');
     onClear?.();
   };
 
   const handleSubmit = () => {
-    onSearch?.(currentValue);
+    onSearch?.(valueRef.current);
   };
 
   // Decide which icon color to use based on current theme (we'll use neutral-500 for default)
@@ -66,7 +70,7 @@ const Search: React.FC<SearchProps> = ({
 
   return (
     <View
-      className={`flex-row items-center rounded-xl bg-secondary-200 px-4 py-2  border border-neutral-300 focus:border-primary-500 ${className}`}
+      className={`flex-row items-center rounded-xl bg-primary-200 px-4 py-2  border border-neutral-300 focus:border-primary-500 ${className}`}
       style={{
         shadowColor: "#000",
         elevation: 5

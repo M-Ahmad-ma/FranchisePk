@@ -1,4 +1,4 @@
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, Text, View, useWindowDimensions } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,7 +7,7 @@ import type { FranchiseStackParamList } from '../../../shared/types/navigation';
 import { useEffect, useState } from 'react';
 import Card from '../../home/components/Card';
 import ChipList, { ChipItem } from '../../../shared/components/ChipList';
-import { useCompanyDirectory } from '../../../shared/hooks/useCompanies';
+import { useCompanyDirectory, useFilteredCompanies } from '../../../shared/hooks/useCompanies';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import {
   buildCategoryChips,
@@ -19,24 +19,36 @@ import {
 import { Log } from '../../../shared/utils/Log';
 
 const PAGE_SIZE = 8;
+const NUM_COLUMNS = 2;
+const CARD_GAP = 0.2;
+const H_PADDING = 2;
 
 export function FranchiseListScreen() {
+  const { width } = useWindowDimensions();
+  const cardWidth = (width - H_PADDING * 2 - CARD_GAP * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
   const navigation =
     useNavigation<NativeStackNavigationProp<FranchiseStackParamList>>();
   const route = useRoute<RouteProp<FranchiseStackParamList, 'FranchiseList'>>();
-  const [selected, setSelected] = useState(route.params?.filter ?? ALL_SECTORS);
+  const { filter, cat, range, city } = route.params ?? {};
+  const hasAdvancedFilter = Boolean(cat || range || city);
+  const [selected, setSelected] = useState(filter ?? ALL_SECTORS);
   const [page, setPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const { data, isLoading, isError } = useCompanyDirectory(selected);
+  const directoryQuery = useCompanyDirectory(selected);
+  const filterQuery = useFilteredCompanies(
+    hasAdvancedFilter ? { cat, range, city } : undefined,
+  );
+  const { data, isLoading, isError } = hasAdvancedFilter
+    ? filterQuery
+    : directoryQuery;
 
   useEffect(() => {
-    const filter = route.params?.filter ?? ALL_SECTORS;
-    if (filter !== selected) {
+    if (!hasAdvancedFilter && filter && filter !== selected) {
       setSelected(filter);
       setPage(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route.params?.filter]);
+  }, [filter]);
 
   const companies = data?.companies ?? [];
 
@@ -76,17 +88,21 @@ export function FranchiseListScreen() {
         className="flex-1"
         data={visibleCompanies}
         keyExtractor={(item) => item.co_id}
+        numColumns={NUM_COLUMNS}
+        columnWrapperStyle={{ gap: CARD_GAP }}
         renderItem={({ item }) => (
-          <Card
-            title={item.co_name}
-            description={item.co_descp}
-            investmentRange={item.co_investment_range}
-            imageSource={getCompanyCoverImage(item)}
-            containerClassName="h-[150px]"
-            onPress={() =>
-              navigation.navigate('CompanyDetail', { slug: item.co_slug })
-            }
-          />
+          <View style={{ width: cardWidth }}>
+            <Card
+              title={item.co_name}
+              description={item.co_descp}
+              investmentRange={item.co_investment_range}
+              imageSource={getCompanyCoverImage(item)}
+              containerClassName="h-[150px]"
+              onPress={() =>
+                navigation.navigate('CompanyDetail', { slug: item.co_slug })
+              }
+            />
+          </View>
         )}
         ListHeaderComponent={
           <View className="px-4 pt-4">
@@ -143,7 +159,7 @@ export function FranchiseListScreen() {
         onEndReached={loadMore}
         onEndReachedThreshold={0.4}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: 24, paddingHorizontal: H_PADDING }}
       />
     </MainLayout>
   );

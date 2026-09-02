@@ -48,7 +48,9 @@ export type BrandTabParamList = {
 };
 
 export type FranchiseStackParamList = {
-  FranchiseList: { filter?: string } | undefined;
+  FranchiseList:
+  | { filter?: string; cat?: string; range?: string | number; city?: string }
+  | undefined;
   CompanyDetail: { slug: string };
 };
 

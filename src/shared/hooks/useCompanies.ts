@@ -57,11 +57,12 @@ export function useTop10Companies() {
   });
 }
 
-export function useFilteredCompanies(params: InvestorFilterRequest) {
+export function useFilteredCompanies(params?: InvestorFilterRequest) {
+  const hasFilter = Boolean(params && (params.cat || params.range || params.city));
   return useQuery({
     queryKey: ['companies', 'filter', params],
-    queryFn: () => companyService.filterCompanies(params),
-    enabled: !!params,
+    queryFn: () => companyService.filterCompanies(params!),
+    enabled: hasFilter,
     staleTime: 5 * 60 * 1000,
   });
 }

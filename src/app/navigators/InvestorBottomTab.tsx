@@ -7,6 +7,7 @@ import { PropertiesStack } from './PropertiesStack';
 import type { InvestorTabParamList } from '../../shared/types/navigation';
 import { View, Text } from 'react-native';
 import { ContactUs } from '../../features/investor/screens/ContactUs';
+import HomeV2 from '../../features/franchise/screens/HomeV2';
 
 function PlaceholderScreen({ name }: { name: string }) {
   return (
@@ -56,7 +57,7 @@ export function InvestorBottomTab() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeV2}
         options={{ tabBarLabel: 'Home' }}
       />
       <Tab.Screen

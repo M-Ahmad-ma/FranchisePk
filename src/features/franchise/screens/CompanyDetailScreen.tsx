@@ -19,8 +19,6 @@ import type { RouteProp } from '@react-navigation/native';
 import type { FranchiseStackParamList } from '../../../shared/types/navigation';
 import {
   ArrowLeft,
-  DollarSign,
-  FileText,
   Percent,
   ChevronRight,
   ChevronDown,
@@ -33,10 +31,6 @@ import {
   TrendingUp,
   Play,
   Phone,
-  Globe,
-  Mail,
-  Camera,
-  User,
   CheckCircle2,
 } from 'lucide-react-native';
 import Card from '../../home/components/Card';
@@ -51,7 +45,7 @@ import { Skeleton } from '../../../shared/components/Skeleton';
 import { HTMLContentView } from '../../../shared/components/HTMLContentView';
 import * as companyService from '../../../shared/api/companyService';
 import type { City } from '../../../shared/api/types';
-import { Animated } from 'react-native';
+import FinancailStatsCard from '../components/FinancailStatsCard';
 
 function extractVideoId(url: string): string | null {
   try {
@@ -135,14 +129,11 @@ export function CompanyDetailScreen() {
     useNavigation<NativeStackNavigationProp<FranchiseStackParamList>>();
   const route = useRoute<RouteProp<FranchiseStackParamList, 'CompanyDetail'>>();
   const { slug } = route.params;
-  const { height } = useWindowDimensions()
 
 
   const { data, isLoading, isError } = useCompany(slug);
   const company = data?.company;
 
-  Log("related", data?.related)
-  Log("company detail", company)
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [galleryVisible, setGalleryVisible] = useState(false);
@@ -234,9 +225,6 @@ export function CompanyDetailScreen() {
   }, [company?.company_images]);
 
 
-  Log("images", heroImages)
-
-
   const videoId = useMemo(() => {
     if (company?.co_video_url) return extractVideoId(company.co_video_url);
     if (typeof company?.video_link === 'string' && /^[\w-]{11}$/.test(company.video_link)) {
@@ -251,6 +239,8 @@ export function CompanyDetailScreen() {
   const slogan = company?.brand_slogan || '';
   const location = [company?.co_city, company?.co_province].filter(Boolean).join(', ');
   const locationFull = [location, company?.co_country_id].filter(Boolean).join(' · ');
+
+  Log("company", company?.co_total_investment, company?.co_royalty_fee, company?.co_security_fee)
 
   const facts: Fact[] = [];
   if (company?.company_year && company.company_year !== '0') {
@@ -271,15 +261,7 @@ export function CompanyDetailScreen() {
   if (Number(company?.average_turnover) > 0) {
     facts.push({ label: 'Avg. turnover', icon: <TrendingUp size={15} color="#1C4878" />, value: pkr(company?.average_turnover) });
   }
-  if (company?.co_total_investment != null && company.co_total_investment !== '') {
-    facts.push({ label: 'Total Investment', icon: <DollarSign size={15} color="#1C4878" />, value: pkr(company.co_total_investment) });
-  }
-  if (company?.co_franchise_fee != null && company.co_franchise_fee !== '') {
-    facts.push({ label: 'Franchise Fee', icon: <DollarSign size={15} color="#1C4878" />, value: pkr(company.co_franchise_fee) });
-  }
-  if (company?.co_royalty_fee != null && company.co_royalty_fee !== '') {
-    facts.push({ label: 'Royalty Fee', icon: <Percent size={15} color="#1C4878" />, value: String(company.co_royalty_fee) });
-  }
+
 
   const aboutHtml =
     [company?.co_overview, company?.co_descp, company?.co_description].find(
@@ -302,19 +284,14 @@ export function CompanyDetailScreen() {
     contacts.length > 0 ||
     employees.length > 0;
 
-  const officePhone = company?.co_office_number ? String(company?.co_office_number) : '';
-  const website = company?.co_website_url ? String(company?.co_website_url) : '';
-  const isInstagram = website.includes('instagram.com');
-  const websiteLabel = website
-    .replace(/^https?:\/\/(www\.)?/i, '')
-    .replace(/\/$/, '')
-    .toLowerCase();
-  const websiteShort = websiteLabel.length > 28 ? `${websiteLabel.slice(0, 28)}…` : websiteLabel;
-
   const openLink = (url: string) => Linking.openURL(url).catch(() => { });
 
 
-
+  const stats = [
+    { id: 1, label: "Total investment", value: company?.co_total_investment, image: heroImages[1] },
+    { id: 2, label: "Franchise Fee", value: company?.co_franchise_fee, image: heroImages[2] },
+    { id: 3, label: "Royality Fee", value: company?.co_royalty_fee, image: heroImages[3] }
+  ]
 
   if (isLoading) {
     return (
@@ -411,6 +388,14 @@ export function CompanyDetailScreen() {
             )}
           </View>
 
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {stats.map(item => (
+              <FinancailStatsCard key={item.id} image={item.image} amount={item.value} label={item.label} />
+            ))}
+          </ScrollView>
+
+
+
           <FactGrid facts={facts} />
 
           {aboutText && (
@@ -465,93 +450,6 @@ export function CompanyDetailScreen() {
 
           {hasContact && (
             <View className="px-1 mt-6">
-              <SectionTitle>Get in Touch</SectionTitle>
-              <View className="rounded-2xl border border-neutral-200 overflow-hidden">
-                {officePhone && (
-                  <TouchableOpacity
-                    onPress={() => openLink(`tel:${officePhone.replace(/\s+/g, '')}`)}
-                    className="flex-row items-center gap-3 px-4 py-3.5 border-b border-neutral-100"
-                  >
-                    <View className="w-9 h-9 rounded-full bg-secondary-200 items-center justify-center">
-                      <Phone size={16} color="#386092" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-[10px] uppercase tracking-[0.12em] text-neutral-600 font-lato-bold">Office</Text>
-                      <Text className="text-neutral-900 font-lato-bold text-sm">{officePhone}</Text>
-                    </View>
-                    <ChevronRight size={16} color="#A3ABC4" />
-                  </TouchableOpacity>
-                )}
-
-                {website && (
-                  <TouchableOpacity
-                    onPress={() => openLink(website)}
-                    className="flex-row items-center gap-3 px-4 py-3.5 border-b border-neutral-100"
-                  >
-                    <View className="w-9 h-9 rounded-full bg-secondary-200 items-center justify-center">
-                      {isInstagram ? <Camera size={16} color="#386092" /> : <Globe size={16} color="#386092" />}
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-[10px] uppercase tracking-[0.12em] text-neutral-600 font-lato-bold">
-                        {isInstagram ? 'Instagram' : 'Website'}
-                      </Text>
-                      <Text className="text-neutral-900 font-lato-bold text-sm" numberOfLines={1}>
-                        {websiteShort}
-                      </Text>
-                    </View>
-                    <ChevronRight size={16} color="#A3ABC4" />
-                  </TouchableOpacity>
-                )}
-
-                {contacts.map((c: any) => (
-                  <View key={c.con_id ?? c.con_p_name} className="px-4 py-3.5 border-b border-neutral-100">
-                    <View className="flex-row items-center gap-3">
-                      <View className="w-9 h-9 rounded-full bg-secondary-200 items-center justify-center">
-                        <User size={16} color="#386092" />
-                      </View>
-                      <View className="flex-1">
-                        {c.con_p_name ? (
-                          <Text className="text-neutral-900 font-lato-bold text-sm">{c.con_p_name}</Text>
-                        ) : null}
-                        {c.con_desgnation ? (
-                          <Text className="text-neutral-600 text-xs font-lato">{c.con_desgnation}</Text>
-                        ) : null}
-                      </View>
-                    </View>
-                    {(c.con_mobilenumber || c.con_email) && (
-                      <View className="mt-2.5 flex-row flex-wrap gap-2">
-                        {c.con_mobilenumber && (
-                          <TouchableOpacity
-                            onPress={() => openLink(`tel:${String(c.con_mobilenumber).replace(/\s+/g, '')}`)}
-                            className="flex-row items-center gap-1.5 bg-secondary-200 rounded-full px-3 py-1.5"
-                          >
-                            <Phone size={12} color="#386092" />
-                            <Text className="text-primary-700 text-xs font-lato-bold">{c.con_mobilenumber}</Text>
-                          </TouchableOpacity>
-                        )}
-                        {c.con_email && String(c.con_email).includes('@') ? (
-                          <TouchableOpacity
-                            onPress={() => openLink(`mailto:${c.con_email}`)}
-                            className="flex-row items-center gap-1.5 bg-secondary-200 rounded-full px-3 py-1.5"
-                          >
-                            <Mail size={12} color="#386092" />
-                            <Text className="text-primary-700 text-xs font-lato-bold">{c.con_email}</Text>
-                          </TouchableOpacity>
-                        ) : c.con_email ? (
-                          <TouchableOpacity
-                            onPress={() => openLink(String(c.con_email))}
-                            className="flex-row items-center gap-1.5 bg-secondary-200 rounded-full px-3 py-1.5"
-                          >
-                            <Camera size={12} color="#386092" />
-                            <Text className="text-primary-700 text-xs font-lato-bold">Social link</Text>
-                          </TouchableOpacity>
-                        ) : null}
-                      </View>
-                    )}
-                  </View>
-                ))}
-              </View>
-
               {employees.map((e: any, idx: number) => {
                 const avatar = imageUrl(e.u_image);
                 const initials = [e.u_firstname, e.u_lastname]
@@ -559,29 +457,34 @@ export function CompanyDetailScreen() {
                   .map((s: string) => String(s).charAt(0).toUpperCase())
                   .join('');
                 return (
-                  <View key={e.id ?? idx} className="flex-row items-center gap-3 mt-3 rounded-2xl border border-neutral-200 p-3">
-                    {avatar ? (
-                      <Image source={{ uri: avatar }} className="w-12 h-12 rounded-full" resizeMode="cover" />
-                    ) : (
-                      <View className="w-12 h-12 rounded-full bg-secondary-200 items-center justify-center">
-                        <Text className="text-primary-700 font-lato-bold">{initials || '?'}</Text>
+                  <View className='border border-neutral-200 p-3 rounded-2xl'>
+                    <View key={e.id ?? idx} className="flex-row items-center gap-3 mt-3">
+                      {avatar ? (
+                        <Image source={{ uri: avatar }} className="w-12 h-12 rounded-full" resizeMode="cover" />
+                      ) : (
+                        <View className="w-12 h-12 rounded-full bg-secondary-200 items-center justify-center">
+                          <Text className="text-primary-700 font-lato-bold">{initials || '?'}</Text>
+                        </View>
+                      )}
+                      <View className="flex-1">
+                        <Text className="text-neutral-900 font-lato-bold text-sm">
+                          {[e.u_firstname, e.u_lastname].filter(Boolean).join(' ') || 'Contact'}
+                        </Text>
+                        {e.a_position ? <Text className="text-neutral-600 text-xs font-lato">{e.a_position}</Text> : null}
+                        {e.u_email ? <Text className="text-neutral-500 text-xs font-lato mt-0.5" numberOfLines={1}>{e.u_email}</Text> : null}
                       </View>
-                    )}
-                    <View className="flex-1">
-                      <Text className="text-neutral-900 font-lato-bold text-sm">
-                        {[e.u_firstname, e.u_lastname].filter(Boolean).join(' ') || 'Contact'}
-                      </Text>
-                      {e.a_position ? <Text className="text-neutral-600 text-xs font-lato">{e.a_position}</Text> : null}
-                      {e.u_email ? <Text className="text-neutral-500 text-xs font-lato mt-0.5" numberOfLines={1}>{e.u_email}</Text> : null}
+                      {e.u_contact && (
+                        <TouchableOpacity
+                          onPress={() => openLink(`tel:${String(e.u_contact).replace(/[^\d+]/g, '')}`)}
+                          className="bg-primary-700 rounded-full p-2.5"
+                        >
+                          <Phone size={16} color="white" />
+                        </TouchableOpacity>
+                      )}
                     </View>
-                    {e.u_contact && (
-                      <TouchableOpacity
-                        onPress={() => openLink(`tel:${String(e.u_contact).replace(/[^\d+]/g, '')}`)}
-                        className="bg-secondary-200 rounded-full p-2.5"
-                      >
-                        <Phone size={16} color="#386092" />
-                      </TouchableOpacity>
-                    )}
+                    <View className='w-1/2 mt-5'>
+                      <Button title='submit request' onPress={() => setSheetVisible(true)} />
+                    </View>
                   </View>
                 );
               })}
@@ -785,6 +688,6 @@ export function CompanyDetailScreen() {
           />
         ))}
       </BottomSheet>
-    </MainLayout>
+    </MainLayout >
   );
 }

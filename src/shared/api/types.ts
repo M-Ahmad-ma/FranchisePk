@@ -220,7 +220,7 @@ export interface HomeData {
 
 export interface InvestorFilterRequest {
   cat?: string;
-  range?: number;
+  range?: string | number;
   city?: string;
 }
 

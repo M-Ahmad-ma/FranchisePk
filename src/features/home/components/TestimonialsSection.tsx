@@ -73,8 +73,7 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
   };
 
   return (
-    <View className="mb-12 mt-2 relative">
-      {/* Ambient glows (optional – keep or remove) */}
+    <View className="mb-12 mt-9 relative">
       <View
         pointerEvents="none"
         className="absolute -left-24 -bottom-8"
@@ -166,7 +165,6 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
                     justifyContent: 'center',
                   }}
                 >
-                  {/* Large quote mark (optional – adds visual flair) */}
                   <Text
                     className="text-neutral-200 font-lato-black absolute"
                     style={{ fontSize: 72, top: 12, left: 16, lineHeight: 72 }}
@@ -174,7 +172,6 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
                     “
                   </Text>
 
-                  {/* Quote text */}
                   <Text
                     className="text-neutral-800 font-lato text-[10px] leading-[16px] mt-2"
                     style={{ fontStyle: 'italic' }}
@@ -182,13 +179,11 @@ export function TestimonialsSection({ testimonials, isLoading }: Props) {
                     “{t.t_description}”
                   </Text>
 
-                  {/* Divider */}
                   <View
                     className="w-12 h-[2px] rounded-full my-5"
                     style={{ backgroundColor: '#F0B429' }}
                   />
 
-                  {/* Author row */}
                   <View className="flex-row items-center">
                     <Avatar uri={avatar} name={t.t_name} size={AVATAR_SIZE} />
                     <View className="ml-3">

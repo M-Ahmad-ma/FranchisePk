@@ -18,56 +18,16 @@ import { Skeleton } from '../../../shared/components/Skeleton';
 import { TestimonialsSection } from '../components/TestimonialsSection';
 import { INTERNATIONAL_SLUG } from '../../../shared/utils/franchise';
 import QuickAction from '../../franchise/components/QuickAction';
+import Search from '../../../shared/components/Search';
+import { quickActions } from '../../../shared/utils/Array';
 
 export function HomeScreen() {
 
 
   const navigation = useNavigation<BottomTabNavigationProp<InvestorTabParamList>>();
 
-  const quickActions = [
-    {
-      icon: <Home color="#1C4878" />,
-      title: "Property",
-      description: "Explore property",
-      containerClassName: "bg-primary-300",
-      onPress: () =>
-        navigation.navigate("Properties", {
-          screen: "PropertiesList",
-        }),
-    },
-    {
-      icon: <Building2 color="#1C4878" />,
-      title: "Companies",
-      description: "Explore trusted franchise brands",
-      containerClassName: "bg-secondary-300",
-      onPress: () =>
-        navigation.navigate("FranchiseDirectory", {
-          screen: "FranchiseList",
-        }),
-    },
-    {
-      icon: <Earth color="#1C4878" />,
-      title: "International",
-      description: "Discover global franchise opportunities",
-      containerClassName: "bg-tertiary-300",
-      onPress: () =>
-        navigation.navigate("FranchiseDirectory", {
-          screen: "FranchiseList",
-          params: { filter: "international_franchises" }
-        })
-      ,
-    },
-    {
-      icon: <Store color="#1C4878" />,
-      title: "Become a Franchise",
-      description: "Start your journey as a franchise partner",
-      containerClassName: "bg-neutral-400",
-      onPress: () =>
-        navigation.navigate("Auth", {
-          screen: "Signup",
-        }),
-    },
-  ];
+  const [query, setQuery] = useState<string>('')
+
 
   const homeQuery = useHome();
   const intlQuery = useInternationalCompanies();
@@ -76,17 +36,14 @@ export function HomeScreen() {
     ? Object.values(homeQuery.data.featured)
     : [];
 
+  const handleSearch = (text: string) => {
+    Log("search query", text)
+  }
+
   const internationalCompanies = intlQuery.data?.companies || [];
   const featuredProperties = homeQuery.data?.property || [];
   const testimonials = homeQuery.data?.testimonials || [];
   const categories = homeQuery?.data?.categories || [];
-
-  // TODO remove it later 
-  Log("homeQuery", homeQuery)
-  Log("featured companies", featuredCompanies)
-  Log("property", featuredProperties[0]?.pMessage)
-  Log("testimonials", testimonials)
-  Log("Categories", homeQuery?.data?.categories)
 
   const adverts = homeQuery.data?.adverts;
   const advertsImages: { uri: string }[] = (adverts ?? [])
@@ -103,12 +60,6 @@ export function HomeScreen() {
     }
     return null;
   };
-
-  const goToRoleSelection = () => {
-    const rootNav = navigation.getParent()?.getParent<NativeStackNavigationProp<RootStackParamList>>();
-    rootNav?.navigate('Auth', { screen: 'Signup' });
-  };
-
 
   return (
     <MainLayout>
@@ -136,6 +87,9 @@ export function HomeScreen() {
                 }
               }}
             />
+            <View className='flex items-center'>
+              <Search className='w-[80%] absolute -bottom-8' value={query} onChangeText={setQuery} onSearch={handleSearch} />
+            </View>
           </View>
 
           <ChipList items={categories}
@@ -144,7 +98,9 @@ export function HomeScreen() {
               params: {
                 filter: item.c_slug
               }
-            })} />
+            })}
+            className='mt-8'
+          />
 
 
           <View className="mt-3">
@@ -153,7 +109,7 @@ export function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerClassName="px-1"
             >
-              {quickActions.map((action, index) => (
+              {quickActions(navigation).map((action, index) => (
                 <View
                   key={action.title}
                   className={`${index !== quickActions.length - 1 ? "" : ""}`}

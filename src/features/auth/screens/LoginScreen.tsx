@@ -4,7 +4,7 @@ import { AuthLayout } from '../../../shared/layouts/AuthLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList, RootStackParamList } from '../../../shared/types/navigation';
+import type { AuthStackParamList } from '../../../shared/types/navigation';
 import { useAuth } from '../../../shared/auth/AuthContext';
 import { ArrowLeft } from 'lucide-react-native';
 
@@ -24,8 +24,6 @@ export function LoginScreen() {
     setLoading(true);
     try {
       await login(email.trim(), password, role ?? 'investor');
-      const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-      rootNav?.reset({ index: 0, routes: [{ name: role === 'brand' ? 'BrandDrawer' : 'InvestorDrawer' }] });
     } catch (e: any) {
       const msg =
         e?.response?.data?.message || e?.message || 'Login failed. Please try again.';

@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList, RootStackParamList } from '../../../shared/types/navigation';
+import type { AuthStackParamList } from '../../../shared/types/navigation';
 import { ArrowLeft, Store, CheckCircle2, ChevronDown, ArrowRight } from 'lucide-react-native';
 import * as companyService from '../../../shared/api/companyService';
 import { useAuth } from '../../../shared/auth/AuthContext';
@@ -28,9 +28,7 @@ export function InvestorGetStartedScreen() {
   const { enterAsGuest } = useAuth();
 
   const goToInvestorFlow = () => {
-    const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     enterAsGuest();
-    rootNav?.reset({ index: 0, routes: [{ name: 'InvestorDrawer' }] });
   };
 
   const [firstName, setFirstName] = useState('');

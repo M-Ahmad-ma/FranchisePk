@@ -17,7 +17,7 @@ import type { AuthStackParamList } from '../../../shared/types/navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STEP_LABELS = ['Email', 'Code', 'Password'];
-const BRAND = '#BC5D00';
+const BRAND = '#5279AC';
 
 function generateCode() {
   return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
@@ -171,7 +171,7 @@ export function BrandForgotPasswordScreen() {
       >
         {step === 0 && (
           <>
-            <View className="w-16 h-16 rounded-2xl bg-secondary-700 items-center justify-center mb-7">
+            <View className="w-16 h-16 rounded-2xl bg-primary-700 items-center justify-center mb-7">
               <Mail size={28} color="#FFFFFF" />
             </View>
             <Text className="text-neutral-900 font-lato-black text-[34px] leading-[40px]">
@@ -203,7 +203,7 @@ export function BrandForgotPasswordScreen() {
             <TouchableOpacity
               onPress={handleSend}
               activeOpacity={0.85}
-              className="bg-secondary-700 rounded-2xl py-4 mt-2 items-center justify-center flex-row gap-2"
+              className="bg-primary-700 rounded-2xl py-4 mt-2 items-center justify-center flex-row gap-2"
             >
               <Text className="text-white font-lato-bold text-base">Send Reset Code</Text>
               <ArrowRight size={18} color="#FFFFFF" />
@@ -213,7 +213,7 @@ export function BrandForgotPasswordScreen() {
 
         {step === 1 && (
           <>
-            <View className="w-16 h-16 rounded-2xl bg-secondary-700 items-center justify-center mb-7">
+            <View className="w-16 h-16 rounded-2xl bg-primary-700 items-center justify-center mb-7">
               <ShieldCheck size={28} color="#FFFFFF" />
             </View>
             <Text className="text-neutral-900 font-lato-black text-[34px] leading-[40px]">
@@ -223,7 +223,7 @@ export function BrandForgotPasswordScreen() {
               We sent a 6-digit code to{' '}
               <Text className="text-neutral-900 font-lato-bold">{email}</Text>.{' '}
               Demo code:{' '}
-              <Text className="text-secondary-700 font-lato-bold tracking-widest">
+              <Text className="text-primary-700 font-lato-bold tracking-widest">
                 {actualCode}
               </Text>
             </Text>
@@ -258,7 +258,7 @@ export function BrandForgotPasswordScreen() {
               onPress={handleVerify}
               activeOpacity={0.85}
               disabled={code.length !== 6}
-              className="bg-secondary-700 rounded-2xl py-4 mt-2 items-center justify-center flex-row gap-2"
+              className="bg-primary-700 rounded-2xl py-4 mt-2 items-center justify-center flex-row gap-2"
               style={{ opacity: code.length === 6 ? 1 : 0.5 }}
             >
               <Text className="text-white font-lato-bold text-base">Verify Code</Text>
@@ -269,7 +269,7 @@ export function BrandForgotPasswordScreen() {
 
         {step === 2 && (
           <>
-            <View className="w-16 h-16 rounded-2xl bg-secondary-700 items-center justify-center mb-7">
+            <View className="w-16 h-16 rounded-2xl bg-primary-700 items-center justify-center mb-7">
               <Lock size={28} color="#FFFFFF" />
             </View>
             <Text className="text-neutral-900 font-lato-black text-[34px] leading-[40px]">
@@ -311,7 +311,7 @@ export function BrandForgotPasswordScreen() {
             <TouchableOpacity
               onPress={handleReset}
               activeOpacity={0.85}
-              className="bg-secondary-700 rounded-2xl py-4 mt-2 items-center justify-center flex-row gap-2"
+              className="bg-primary-700 rounded-2xl py-4 mt-2 items-center justify-center flex-row gap-2"
             >
               <Text className="text-white font-lato-bold text-base">Reset Password</Text>
               <ArrowRight size={18} color="#FFFFFF" />
@@ -337,7 +337,7 @@ export function BrandForgotPasswordScreen() {
             <TouchableOpacity
               onPress={() => navigation.popTo('BrandLogin')}
               activeOpacity={0.85}
-              className="bg-secondary-700 rounded-2xl py-4 w-full items-center justify-center"
+              className="bg-primary-700 rounded-2xl py-4 w-full items-center justify-center"
             >
               <Text className="text-white font-lato-bold text-base">Back to Login</Text>
             </TouchableOpacity>

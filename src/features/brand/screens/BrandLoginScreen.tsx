@@ -4,15 +4,17 @@ import { AuthLayout } from '../../../shared/layouts/AuthLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList, RootStackParamList } from '../../../shared/types/navigation';
+import type { AuthStackParamList } from '../../../shared/types/navigation';
 import { useAuth } from '../../../shared/auth/AuthContext';
+import { getAuthErrorMessage } from '../../../shared/auth/authService';
 import { ArrowLeft, Store } from 'lucide-react-native';
+import { BYPASS_AUTH } from '../../../config';
 
 export function BrandLoginScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'BrandLogin'>>();
   const role = route.params?.role;
-  const { login } = useAuth();
+  const { user, login, mockLoginAsBrand } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,13 +29,13 @@ export function BrandLoginScreen() {
     }
     setLoading(true);
     try {
-      await login(email.trim(), password, 'brand');
-      const rootNav = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-      rootNav?.reset({ index: 0, routes: [{ name: 'BrandDrawer' }] });
+      if (BYPASS_AUTH) {
+        mockLoginAsBrand(email.trim());
+      } else {
+        await login(email.trim(), password, 'brand');
+      }
     } catch (e: any) {
-      const msg =
-        e?.response?.data?.message || e?.message || 'Login failed. Please try again.';
-      setError(msg);
+      setError(getAuthErrorMessage(e, 'login'));
     } finally {
       setLoading(false);
     }
@@ -48,13 +50,13 @@ export function BrandLoginScreen() {
             activeOpacity={0.7}
             className="flex-row items-center gap-2"
           >
-            <View className="w-9 h-9 rounded-full bg-secondary-200 border border-secondary-300 items-center justify-center">
-              <ArrowLeft size={16} color="#BC5D00" />
+            <View className="w-9 h-9 rounded-full bg-primary-200 border border-primary-300 items-center justify-center">
+              <ArrowLeft size={16} color="#5279AC" />
             </View>
-            <Text className="text-secondary-700 font-lato-bold text-sm">Change role</Text>
+            <Text className="text-primary-700 font-lato-bold text-sm">Change role</Text>
           </TouchableOpacity>
-          <View className="rounded-full bg-secondary-200 border border-secondary-300 px-3 py-1.5">
-            <Text className="text-secondary-700 font-lato-bold text-xs capitalize">
+          <View className="rounded-full bg-primary-200 border border-primary-300 px-3 py-1.5">
+            <Text className="text-primary-700 font-lato-bold text-xs capitalize">
               {role} account
             </Text>
           </View>
@@ -63,8 +65,8 @@ export function BrandLoginScreen() {
 
       <View className="flex-1 px-6 pt-24">
         <View className="mb-8">
-          <View className="w-14 h-14 rounded-2xl bg-secondary-400 items-center justify-center mb-5">
-            <Store size={26} color="#3A2B00" />
+          <View className="w-14 h-14 rounded-2xl bg-primary-400 items-center justify-center mb-5">
+            <Store size={26} color="#00315D" />
           </View>
           <Text className="text-neutral-900 text-3xl font-lato-bold">
             Welcome back,{'\n'}Brand Owner
@@ -75,8 +77,8 @@ export function BrandLoginScreen() {
         </View>
 
         <View className="flex-row mb-6">
-          <View className="flex-1 py-2 border-b-2 border-secondary-700">
-            <Text className="text-secondary-700 text-center font-lato-bold text-base">Login</Text>
+          <View className="flex-1 py-2 border-b-2 border-primary-700">
+            <Text className="text-primary-700 text-center font-lato-bold text-base">Login</Text>
           </View>
           <TouchableOpacity
             className="flex-1 py-2 border-b-2 border-neutral-200"
@@ -118,26 +120,26 @@ export function BrandLoginScreen() {
           className="items-end mb-6"
           onPress={() => navigation.navigate('BrandForgotPassword')}
         >
-          <Text className="text-secondary-700 font-lato-bold text-sm">Forgot password?</Text>
+          <Text className="text-primary-700 font-lato-bold text-sm">Forgot password?</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={handleLogin}
           disabled={loading}
-          className="bg-secondary-700 w-full rounded-2xl py-4 items-center mb-6"
+          className="bg-primary-700 w-full rounded-2xl py-4 items-center mb-6"
         >
           {loading ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text className="text-secondary-100 font-lato-bold text-base">Enter Brand Dashboard</Text>
+            <Text className="text-primary-100 font-lato-bold text-base">Enter Brand Dashboard</Text>
           )}
         </TouchableOpacity>
 
         <View className="flex-1 justify-end pb-6 w-full">
           <Text className="text-neutral-600 text-center text-sm">
             By continuing, you agree to our{' '}
-            <Text className="text-secondary-700 font-lato-bold">Terms of Service</Text> and{' '}
-            <Text className="text-secondary-700 font-lato-bold">Privacy Policy</Text>.
+            <Text className="text-primary-700 font-lato-bold">Terms of Service</Text> and{' '}
+            <Text className="text-primary-700 font-lato-bold">Privacy Policy</Text>.
           </Text>
         </View>
       </View>

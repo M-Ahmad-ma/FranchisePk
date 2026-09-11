@@ -9,7 +9,9 @@ import type { RootStackParamList } from '../../shared/types/navigation';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function AppNavigator() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, isGuest, user } = useAuth();
+
+  console.log('[AppNavigator] render - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'isGuest:', isGuest, 'user?.role:', user?.role);
 
   if (isLoading) {
     return (
@@ -21,7 +23,8 @@ export function AppNavigator() {
 
   // Authenticated brand owners get the brand flow; everyone else gets the
   // investor flow so they can explore the app without signing in.
-  const isBrand = user?.role === 'brand' && isAuthenticated;
+  const isBrand = user?.role === 'brand';
+  console.log('[AppNavigator] isBrand:', isBrand, 'rendering:', isBrand ? 'BrandDrawer' : 'InvestorDrawer', 'showAuth:', !isAuthenticated && !isGuest && !isBrand);
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -30,7 +33,9 @@ export function AppNavigator() {
       ) : (
         <Stack.Screen name="InvestorDrawer" component={InvestorDrawer} />
       )}
-      <Stack.Screen name="Auth" component={AuthNavigator} />
+      {!isAuthenticated && !isGuest && !isBrand && (
+        <Stack.Screen name="Auth" component={AuthNavigator} />
+      )}
     </Stack.Navigator>
   );
 }

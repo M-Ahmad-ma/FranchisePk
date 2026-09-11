@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { LayoutDashboard, Users, Store, User } from 'lucide-react-native';
 import { BrandDashboardScreen } from '../../features/brand/screens/BrandDashboardScreen';
 import { BrandLeadsScreen } from '../../features/brand/screens/BrandLeadsScreen';
-import { BrandFranchisesScreen } from '../../features/brand/screens/BrandFranchisesScreen';
+import { BrandFranchisesStack } from './BrandFranchisesStack';
 import { BrandProfileScreen } from '../../features/brand/screens/BrandProfileScreen';
 import type { BrandTabParamList } from '../../shared/types/navigation';
 
@@ -28,7 +28,7 @@ export function BrandBottomTab() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ color, size }) => tabIcons[route.name](color, size),
-        tabBarActiveTintColor: '#BC5D00',
+        tabBarActiveTintColor: '#386092',
         tabBarInactiveTintColor: '#8990A8',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -45,7 +45,7 @@ export function BrandBottomTab() {
       })}
     >
       <Tab.Screen name="BrandDashboard" component={BrandDashboardScreen} />
-      <Tab.Screen name="BrandFranchises" component={BrandFranchisesScreen} />
+      <Tab.Screen name="BrandFranchises" component={BrandFranchisesStack} />
       <Tab.Screen name="BrandLeads" component={BrandLeadsScreen} />
       <Tab.Screen name="BrandProfile" component={BrandProfileScreen} />
     </Tab.Navigator>

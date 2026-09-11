@@ -99,7 +99,7 @@ export interface Company {
   co_category_id: string;
   co_name: string;
   co_slug: string;
-  co_descp?: string;
+  co_description?: string;
   co_overview?: string;
   co_total_investment?: string;
   co_franchise_fee?: string;
@@ -108,7 +108,9 @@ export interface Company {
   company_images?: CompanyImages[];
   company_poster?: string;
   co_video_url?: string;
+  co_website_url?: string;
   co_tag?: string;
+  co_city?: string;
   [key: string]: any;
 }
 
@@ -240,4 +242,111 @@ export interface City {
   id?: string | number;
   co_city?: string;
   name?: string;
+}
+
+// ─── Brand userpanel types ────────────────────────────────────────────────
+
+/** Stats returned by GET /userpanel/dashboard (User_model->all_nums()). */
+export interface BrandDashboardStats {
+  companies?: number | string;
+  leads?: number | string;
+  investors?: number | string;
+  jobs?: number | string;
+  events?: number | string;
+  properties?: number | string;
+  news?: number | string;
+  subscribers?: number | string;
+  [key: string]: any;
+}
+
+/** An investor lead from GET /userpanel/investor-requests. */
+export interface InvestorLead {
+  id?: string | number;
+  firstname?: string;
+  lastname?: string;
+  name?: string;
+  email?: string;
+  number?: string;
+  phone?: string;
+  city?: string;
+  co_id?: string;
+  co_name?: string;
+  message?: string;
+  lead_type?: string;
+  created_at?: string;
+  date?: string;
+  e_firstname?: string;
+  e_lastname?: string;
+  e_email?: string;
+  e_phonenumber?: string;
+  e_message?: string;
+  [key: string]: any;
+}
+
+/** A franchise request from GET /userpanel/franchise/requests. */
+export interface FranchiseRequest {
+  id?: string | number;
+  name?: string;
+  firstname?: string;
+  lastname?: string;
+  email?: string;
+  number?: string;
+  city?: string;
+  message?: string;
+  created_at?: string;
+  date?: string;
+  [key: string]: any;
+}
+
+/** A contact message from GET /userpanel/contact. */
+export interface ContactMessage {
+  id?: string | number;
+  name?: string;
+  firstname?: string;
+  lastname?: string;
+  email?: string;
+  subject?: string;
+  message?: string;
+  created_at?: string;
+  date?: string;
+  [key: string]: any;
+}
+
+/** Dropdown data for the company create form. */
+export interface CompanyCreateData {
+  categories: Category[];
+  cities: City[];
+  countries: any[];
+}
+
+/** Payload for creating/updating a company. */
+export interface CompanyPayload {
+  name?: string;
+  co_name?: string;
+  category_id?: string | number;
+  city_id?: string | number;
+  country_id?: string | number;
+  description?: string;
+  overview?: string;
+  total_investment?: string;
+  franchise_fee?: string;
+  royalty_fee?: string;
+  [key: string]: any;
+}
+
+/** Brand owner's own profile (GET /userpanel/profile). */
+export interface BrandProfile {
+  id?: string | number;
+  user_id?: string | number;
+  firstname?: string;
+  lastname?: string;
+  name?: string;
+  email?: string;
+  contact?: string;
+  company?: string;
+  image?: string;
+  city?: string;
+  address?: string;
+  pass?: string;
+  [key: string]: any;
 }

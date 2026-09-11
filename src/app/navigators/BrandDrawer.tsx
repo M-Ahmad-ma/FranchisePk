@@ -9,13 +9,14 @@ import {
   LogIn,
   LogOut,
 } from 'lucide-react-native';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { DrawerContentComponentProps } from '@react-navigation/drawer';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BrandBottomTab } from './BrandBottomTab';
 import { BrandProfileScreen } from '../../features/brand/screens/BrandProfileScreen';
 import { BrandLeadsScreen } from '../../features/brand/screens/BrandLeadsScreen';
-import type { BrandDrawerParamList } from '../../shared/types/navigation';
+import type { BrandDrawerParamList, RootStackParamList } from '../../shared/types/navigation';
 import { useAuth } from '../../shared/auth/AuthContext';
 
 const Drawer = createDrawerNavigator<BrandDrawerParamList>();
@@ -32,7 +33,7 @@ const menuItems: MenuItem[] = [
   { route: 'BrandProfile', label: 'Profile', icon: User },
 ];
 
-const ACTIVE_COLOR = '#BC5D00';
+const ACTIVE_COLOR = '#386092';
 const INACTIVE_COLOR = '#8990A8';
 
 type CustomDrawerContentProps = DrawerContentComponentProps;
@@ -50,17 +51,20 @@ function CustomDrawerContent({
     navigation.dispatch(DrawerActions.closeDrawer());
   };
 
+  const goToAuth = () => {
+    const root = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    root?.navigate('Auth', { screen: 'BrandLogin' });
+    navigation.dispatch(DrawerActions.closeDrawer());
+  };
+
   return (
     <View className="flex-1 bg-white">
       <View
-        className="py-7 p-3 bg-secondary-700 border-b-[0.5px] border-neutral-200"
+        className="py-7 p-3 bg-primary-900 border-b-[0.5px] border-neutral-200"
         style={{ paddingTop: insets.top + 8 }}
       >
         <View className="flex-row items-center gap-2">
-          <View className="w-10 h-10 rounded-xl bg-secondary-400 items-center justify-center">
-            <Store size={22} color="#3A2B00" />
-          </View>
-          <Text className="text-white font-lato-black text-xl">Brand Hub</Text>
+          <Image source={require('../../../assets/FranchiseLogo.png')} />
         </View>
       </View>
 
@@ -73,9 +77,9 @@ function CustomDrawerContent({
             <Pressable
               key={route}
               onPress={() => handlePress(route)}
-              className={`${isActive ? 'border-l-secondary-700 border-l-[5px]' : ''} flex-row items-center justify-between px-4 py-3.5`}
+              className={`${isActive ? 'border-l-primary-700 border-l-[5px]' : ''} flex-row items-center justify-between px-4 py-3.5`}
               style={{
-                backgroundColor: isActive ? '#FFF3EA' : 'transparent',
+                backgroundColor: isActive ? '#EBF1FF' : 'transparent',
               }}
             >
               <View className="flex-row items-center gap-3">
@@ -102,8 +106,8 @@ function CustomDrawerContent({
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Pressable
-          onPress={() => logout()}
-          className="flex-row items-center justify-center gap-2 rounded-xl bg-secondary-700 py-3"
+          onPress={goToAuth}
+          className="flex-row items-center justify-center gap-2 rounded-xl bg-primary-700 py-3"
         >
           <LogIn size={18} color="#FFFFFF" />
           <Text className="text-white font-lato-bold">Sign In</Text>

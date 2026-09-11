@@ -43,8 +43,13 @@ export type BrandDrawerParamList = {
 export type BrandTabParamList = {
   BrandDashboard: undefined;
   BrandLeads: undefined;
-  BrandFranchises: undefined;
+  BrandFranchises: NavigatorScreenParams<BrandFranchisesStackParamList>;
   BrandProfile: undefined;
+};
+
+export type BrandFranchisesStackParamList = {
+  BrandCompaniesList: undefined;
+  BrandCompanyForm: { id?: string } | undefined;
 };
 
 export type FranchiseStackParamList = {

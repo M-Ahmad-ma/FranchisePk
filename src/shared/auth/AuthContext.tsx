@@ -21,6 +21,7 @@ interface AuthState {
     company: string;
     city?: string;
   }, role?: UserRole) => Promise<void>;
+  mockLoginAsBrand: (email: string) => void;
   logout: () => Promise<void>;
 }
 
@@ -107,9 +108,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       company: string;
       city?: string;
     }, role: UserRole = 'investor') => {
+      console.log('[AuthContext][handleRegister] calling authService.register, role:', role);
       const { token: newToken, user: newUser } = await authService.register(data, role);
+      console.log('[AuthContext][handleRegister] got token:', newToken ? 'yes' : 'no', 'user.role:', newUser?.role);
       setToken(newToken);
       setUser(newUser);
+      console.log('[AuthContext][handleRegister] state updated');
     },
     [],
   );
@@ -119,6 +123,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setToken(null);
     setIsGuest(false);
+  }, []);
+
+  const handleMockLoginAsBrand = useCallback((email: string) => {
+    const mockUser: User = {
+      id: 0,
+      name: email.split('@')[0] || 'Brand Owner',
+      email,
+      contact: '',
+      company: 'My Brand',
+      image: '',
+      city: '',
+      date: '',
+      role: 'brand',
+    };
+    setToken('dev-mock-token');
+    setUser(mockUser);
   }, []);
 
   const handleEnterAsGuest = useCallback(async () => {
@@ -137,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         enterAsGuest: handleEnterAsGuest,
         login: handleLogin,
         register: handleRegister,
+        mockLoginAsBrand: handleMockLoginAsBrand,
         logout: handleLogout,
       }}
     >

@@ -1,8 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User, UserRole } from '../api/types';
 import * as authService from './authService';
 import { setTokenProvider, setUnauthorizedHandler } from '../api/client';
 import { BYPASS_AUTH } from '../../config';
+
+const USER_KEY = 'auth_user';
 
 interface AuthState {
   user: User | null;
@@ -22,6 +25,7 @@ interface AuthState {
     city?: string;
   }, role?: UserRole) => Promise<void>;
   mockLoginAsBrand: (email: string) => void;
+  updateUser: (patch: Partial<User>) => void;
   logout: () => Promise<void>;
 }
 
@@ -146,6 +150,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authService.setStoredGuest(true);
   }, []);
 
+  const handleUpdateUser = useCallback((patch: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...patch };
+      AsyncStorage.setItem(USER_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -158,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login: handleLogin,
         register: handleRegister,
         mockLoginAsBrand: handleMockLoginAsBrand,
+        updateUser: handleUpdateUser,
         logout: handleLogout,
       }}
     >

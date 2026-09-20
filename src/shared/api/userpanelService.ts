@@ -102,12 +102,12 @@ export async function getContactMessages() {
 // ─── Profile ─────────────────────────────────────────────────────────────
 
 export async function getBrandProfile() {
-  const res = await apiClient.get<ApiResponse<BrandProfile>>('/auth/profile');
+  const res = await apiClient.get<ApiResponse<BrandProfile>>('/userpanel/profile');
   return res.data.data;
 }
 
 export async function updateBrandProfile(payload: FormData) {
-  const res = await apiClient.post<ApiResponse<boolean>>('/auth/profile', payload, {
+  const res = await apiClient.post<ApiResponse<boolean>>('/userpanel/profile/update', payload, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return res.data;

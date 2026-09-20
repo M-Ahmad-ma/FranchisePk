@@ -7,7 +7,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList, RootStackParamList } from '../../../shared/types/navigation';
 import { useAuth } from '../../../shared/auth/AuthContext';
 import { getAuthErrorMessage } from '../../../shared/auth/authService';
-import { ArrowLeft, Store } from 'lucide-react-native';
+import { ArrowLeft, Store, Eye, EyeOff } from 'lucide-react-native';
 import * as companyService from '../../../shared/api/companyService';
 import type { City } from '../../../shared/api/types';
 
@@ -24,6 +24,7 @@ export function BrandSignupScreen() {
   const [company, setCompany] = useState('');
   const [city, setCity] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -194,15 +195,18 @@ export function BrandSignupScreen() {
           </View>
         </TouchableOpacity>
 
-        <View className="bg-white rounded-2xl p-2 border border-neutral-200 mb-6">
+        <View className="bg-white rounded-2xl p-2 border border-neutral-200 mb-6 flex-row items-center">
           <TextInput
             placeholder="Password"
             placeholderTextColor="#8990A8"
-            className="px-4 py-3 text-neutral-900"
-            secureTextEntry
+            className="flex-1 px-4 py-3 text-neutral-900"
+            secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
           />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="px-3">
+            {showPassword ? <EyeOff size={20} color="#8990A8" /> : <Eye size={20} color="#8990A8" />}
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity

@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
-import { HelpCircle, LogOut, Save, Camera } from 'lucide-react-native';
+import { HelpCircle, LogOut, Save, Camera, Eye, EyeOff } from 'lucide-react-native';
 import { launchImageLibrary, type Asset } from 'react-native-image-picker';
 import Avatar from '../../../shared/components/Avatar';
 import Button from '../../../shared/components/Button';
@@ -20,7 +20,7 @@ const field =
   'bg-white rounded-2xl px-4 py-3.5 text-neutral-900 font-lato text-base border border-neutral-200';
 
 export function BrandProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const profileQuery = useBrandProfile();
   const updateMutation = useUpdateBrandProfile();
 
@@ -28,11 +28,11 @@ export function BrandProfileScreen() {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
   const [company, setCompany] = useState('');
   const [city, setCity] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [image, setImage] = useState<Asset | null>(null);
   const [message, setMessage] = useState('');
   const [fieldError, setFieldError] = useState('');
@@ -40,7 +40,6 @@ export function BrandProfileScreen() {
   useEffect(() => {
     setFirstName(profile?.firstname ?? user?.name?.split(' ')[0] ?? '');
     setLastName(profile?.lastname ?? user?.name?.split(' ').slice(1).join(' ') ?? '');
-    setEmail(profile?.email ?? user?.email ?? '');
     setContact(profile?.contact ?? user?.contact ?? '');
     setCompany(profile?.company ?? user?.company ?? '');
     setCity(profile?.city ?? user?.city ?? '');
@@ -68,7 +67,7 @@ export function BrandProfileScreen() {
     setMessage('');
     setFieldError('');
 
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+    if (!firstName.trim() || !lastName.trim()) {
       setFieldError('First name, last name, and email are required.');
       return;
     }
@@ -81,8 +80,7 @@ export function BrandProfileScreen() {
       const formData = new FormData();
       formData.append('firstname', firstName.trim());
       formData.append('lastname', lastName.trim());
-      formData.append('email', email.trim());
-      formData.append('pass', password);
+      formData.append('password', password);
       if (contact.trim()) formData.append('contact', contact.trim());
       if (company.trim()) formData.append('company', company.trim());
       if (city.trim()) formData.append('city', city.trim());
@@ -95,6 +93,12 @@ export function BrandProfileScreen() {
       }
 
       await updateMutation.mutateAsync(formData);
+      updateUser({
+        name: [firstName.trim(), lastName.trim()].filter(Boolean).join(' ').trim(),
+        contact: contact.trim(),
+        company: company.trim(),
+        city: city.trim(),
+      });
       setPassword('');
       setMessage('Profile updated.');
     } catch (e: any) {
@@ -124,7 +128,6 @@ export function BrandProfileScreen() {
           </TouchableOpacity>
           <Text className="text-neutral-500 text-xs mt-0.5">Tap to change photo</Text>
           <Text className="text-neutral-900 text-2xl font-lato-bold mt-1">{displayName}</Text>
-          <Text className="text-neutral-500 text-sm mt-1">{email || 'example@gmail.com'}</Text>
         </View>
 
         {profileQuery.isLoading ? (
@@ -157,16 +160,6 @@ export function BrandProfileScreen() {
               onChangeText={setLastName}
             />
 
-            <Text className="text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1">Email</Text>
-            <TextInput
-              className={`${field} mb-4`}
-              placeholder="Email address"
-              placeholderTextColor="#A3ABC4"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
 
             <Text className="text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1">Phone</Text>
             <TextInput
@@ -197,14 +190,19 @@ export function BrandProfileScreen() {
             />
 
             <Text className="text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1">Password</Text>
-            <TextInput
-              className={`${field} mb-6`}
-              placeholder="Enter password"
-              placeholderTextColor="#A3ABC4"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
+            <View className={`${field} mb-6 flex-row items-center`}>
+              <TextInput
+                className="flex-1 px-4 py-3.5 text-neutral-900"
+                placeholder="Enter password"
+                placeholderTextColor="#A3ABC4"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="px-2">
+                {showPassword ? <EyeOff size={20} color="#A3ABC4" /> : <Eye size={20} color="#A3ABC4" />}
+              </TouchableOpacity>
+            </View>
 
             {fieldError ? (
               <Text className="text-red-500 text-sm text-center mb-3">{fieldError}</Text>

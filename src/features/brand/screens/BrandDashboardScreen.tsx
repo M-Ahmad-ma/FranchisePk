@@ -4,9 +4,8 @@ import { useAuth } from '../../../shared/auth/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { BrandTabParamList } from '../../../shared/types/navigation';
-import Avatar from '../../../shared/components/Avatar';
+import UserAvatar from '../../../shared/components/UserAvatar';
 import { Skeleton } from '../../../shared/components/Skeleton';
-import { imageUrl } from '../../../shared/api/imageUrl';
 import { useBrandDashboard, useInvestorRequests } from '../../../shared/hooks/useBrand';
 import { toArray, fullName } from '../../../shared/utils/collections';
 import type { InvestorLead } from '../../../shared/api/types';
@@ -32,7 +31,6 @@ export function BrandDashboardScreen() {
   const { user } = useAuth();
   const displayName = user?.name || 'Brand Owner';
   const displayCompany = user?.company || 'My Brand';
-  const avatarUri = imageUrl(user?.image);
 
   const dashboard = useBrandDashboard();
   const leadsQuery = useInvestorRequests();
@@ -46,6 +44,10 @@ export function BrandDashboardScreen() {
 
   const isLoading = dashboard.isLoading || leadsQuery.isLoading;
 
+  const handleProfilePress = () => {
+    navigation.navigate("BrandProfile")
+  }
+
 
   const quickActions = [
     { icon: Plus, label: 'Add Brand', color: '#5279AC', bg: 'bg-primary-200', onPress: () => navigation.navigate('BrandFranchises', { screen: 'BrandCompanyForm' }) },
@@ -53,8 +55,12 @@ export function BrandDashboardScreen() {
     { icon: Users, label: 'View Leads', color: '#5279AC', bg: 'bg-primary-200', onPress: () => navigation.navigate('BrandLeads') },
   ];
 
+
   return (
-    <MainLayout>
+    <MainLayout
+      showHeader={true}
+      headerRight={<UserAvatar size={44} onPress={handleProfilePress} />}
+    >
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -81,11 +87,11 @@ export function BrandDashboardScreen() {
                 borderRadius: 999,
               }}
             >
-              <Avatar
-                source={avatarUri ? { uri: imageUrl(avatarUri) } : undefined}
+              <UserAvatar
                 size={56}
-                initials={user?.name ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() : 'BR'}
+                initialsStyle="full"
                 className="bg-primary-700"
+                onPress={null}
               />
             </View>
             <View className="flex-1">
@@ -103,7 +109,7 @@ export function BrandDashboardScreen() {
         {/* overview */}
         <View className="px-4 mb-6">
           <View
-            className="bg-primary-700 rounded-3xl p-5"
+            className="bg-primary-700 rounded-2xl p-5"
             style={{ elevation: 4, shadowColor: '#5279AC', shadowOpacity: 0.2, shadowRadius: 14 }}
           >
             <View className="flex-row items-center gap-2 mb-1">
@@ -122,14 +128,7 @@ export function BrandDashboardScreen() {
             <Text className="text-primary-300 font-lato text-sm mt-0.5">
               Active franchise opportunities
             </Text>
-            <TouchableOpacity
-              className="bg-primary-400 rounded-full px-4 py-2.5 flex-row items-center gap-2 self-start mt-4"
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('BrandFranchises', { screen: 'BrandCompanyForm' })}
-            >
-              <Text className="text-[#00315D] font-lato-bold text-sm">Add New Listing</Text>
-              <ArrowRight size={16} color="#00315D" />
-            </TouchableOpacity>
+
           </View>
 
         </View>

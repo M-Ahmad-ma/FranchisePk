@@ -1,5 +1,5 @@
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { DrawerActions } from '@react-navigation/native';
+import { CommonActions, DrawerActions } from '@react-navigation/native';
 import {
   LayoutDashboard,
   Store,
@@ -8,6 +8,7 @@ import {
   ChevronRight,
   LogIn,
   LogOut,
+  Home,
 } from 'lucide-react-native';
 import { View, Text, Pressable, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -43,7 +44,7 @@ function CustomDrawerContent({
   navigation,
 }: CustomDrawerContentProps) {
   const insets = useSafeAreaInsets();
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
   const activeRoute = state.routeNames[state.index];
 
   const handlePress = (route: keyof BrandDrawerParamList) => {
@@ -55,6 +56,16 @@ function CustomDrawerContent({
     const root = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
     root?.navigate('Auth', { screen: 'BrandLogin' });
     navigation.dispatch(DrawerActions.closeDrawer());
+  };
+
+  const goToHome = () => {
+    const root = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    root?.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'InvestorDrawer' }],
+      })
+    );
   };
 
   return (
@@ -69,6 +80,25 @@ function CustomDrawerContent({
       </View>
 
       <View className="flex-1 py-8">
+        <Pressable
+          onPress={goToHome}
+          className="flex-row items-center justify-between px-4 py-3.5"
+        >
+          <View className="flex-row items-center gap-3">
+            <Home color={INACTIVE_COLOR} size={20} />
+            <Text
+              className="text-[15px]"
+              style={{
+                fontFamily: 'lato',
+                fontWeight: '500',
+                color: INACTIVE_COLOR,
+              }}
+            >
+              Home
+            </Text>
+          </View>
+          <ChevronRight size={18} color={INACTIVE_COLOR} />
+        </Pressable>
         {menuItems.map(({ route, label, icon: Icon }) => {
           const isActive = activeRoute === route;
           const color = isActive ? ACTIVE_COLOR : INACTIVE_COLOR;
@@ -105,15 +135,18 @@ function CustomDrawerContent({
         className="border-t-[0.5px] border-neutral-200 px-4 py-4 gap-2"
         style={{ paddingBottom: insets.bottom + 12 }}
       >
+
         <Pressable
-          onPress={goToAuth}
-          className="flex-row items-center justify-center gap-2 rounded-xl bg-primary-700 py-3"
-        >
-          <LogIn size={18} color="#FFFFFF" />
-          <Text className="text-white font-lato-bold">Sign In</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => logout()}
+          onPress={async () => {
+            await logout();
+            const root = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+            root?.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'InvestorDrawer' }],
+              })
+            );
+          }}
           className="flex-row items-center justify-center gap-2 rounded-xl border border-neutral-300 py-3"
         >
           <LogOut size={18} color="#565E74" />

@@ -1,10 +1,9 @@
 import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { User, Settings, HelpCircle, LogOut, ChevronRight, Shield, BriefcaseBusiness, Banknote, TrendingUp } from 'lucide-react-native';
-import Avatar from '../../../shared/components/Avatar';
+import UserAvatar from '../../../shared/components/UserAvatar';
 import Button from '../../../shared/components/Button';
 import { useAuth } from '../../../shared/auth/AuthContext';
-import { imageUrl } from '../../../shared/api/imageUrl';
 
 const menuItems = [
   { icon: User, label: 'Personal Information', color: '#436CF5', bg: 'bg-primary-200' },
@@ -24,7 +23,6 @@ export function InvestorProfileScreen() {
   const displayName = user?.name || 'Investor';
   const displayEmail = user?.email || '';
   const displayCompany = user?.company || 'Investor';
-  const avatarUri = imageUrl(user?.image);
 
   return (
     <MainLayout>
@@ -32,11 +30,7 @@ export function InvestorProfileScreen() {
         {/* Profile Header */}
         <View className="items-center pt-6 pb-4 px-4">
           <View className="mb-4" style={{ elevation: 4, shadowColor: '#436CF5', shadowOpacity: 0.2, shadowRadius: 12, borderRadius: 999 }}>
-            <Avatar
-              source={avatarUri ? { uri: avatarUri } : undefined}
-              size={88}
-              initials={user?.name ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'MA'}
-            />
+            <UserAvatar size={88} initialsStyle="full" onPress={null} />
           </View>
           <Text className="text-neutral-900 text-2xl font-lato-bold">{displayName}</Text>
           <Text className="text-neutral-500 text-sm mt-1">{displayEmail || 'example@gmail.com'}</Text>

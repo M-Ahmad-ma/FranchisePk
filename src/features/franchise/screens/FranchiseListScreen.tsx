@@ -17,6 +17,7 @@ import {
   ALL_SECTORS,
 } from '../../../shared/utils/franchise';
 import { Log } from '../../../shared/utils/Log';
+import UserAvatar from '../../../shared/components/UserAvatar';
 
 const PAGE_SIZE = 8;
 const NUM_COLUMNS = 2;
@@ -83,7 +84,12 @@ export function FranchiseListScreen() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout
+      showHeader={true}
+      headerRight={
+        <UserAvatar />
+      }
+    >
       <FlatList
         className="flex-1"
         data={visibleCompanies}
@@ -161,6 +167,6 @@ export function FranchiseListScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 24, paddingHorizontal: H_PADDING }}
       />
-    </MainLayout>
+    </MainLayout >
   );
 }

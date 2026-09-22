@@ -13,6 +13,7 @@ import { paginate, hasMore } from "../../../shared/utils/franchise"
 import { Skeleton } from "../../../shared/components/Skeleton"
 import { HousePlus } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import UserAvatar from "../../../shared/components/UserAvatar"
 
 const PAGE_SIZE = 6
 
@@ -73,7 +74,12 @@ function Properties() {
   }
 
   return (
-    <MainLayout>
+    <MainLayout
+      showHeader={true}
+      headerRight={
+        <UserAvatar />
+      }
+    >
       <FlatList
         data={visibleProperties}
         keyExtractor={(item) => item.p_id}

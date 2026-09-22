@@ -4,14 +4,15 @@ import { AuthLayout } from '../../../shared/layouts/AuthLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../../shared/types/navigation';
+import type { AuthStackParamList, RootStackParamList } from '../../../shared/types/navigation';
 import { useAuth } from '../../../shared/auth/AuthContext';
 import { getAuthErrorMessage } from '../../../shared/auth/authService';
 import { ArrowLeft, Store, Eye, EyeOff } from 'lucide-react-native';
 import { BYPASS_AUTH } from '../../../config';
+import { CommonActions } from '@react-navigation/native';
 
 export function BrandLoginScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList & RootStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'BrandLogin'>>();
   const role = route.params?.role;
   const { user, login, mockLoginAsBrand } = useAuth();
@@ -35,6 +36,13 @@ export function BrandLoginScreen() {
       } else {
         await login(email.trim(), password, 'brand');
       }
+      // Navigate to BrandDrawer after successful brand login
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'BrandDrawer' }],
+        })
+      );
     } catch (e: any) {
       setError(getAuthErrorMessage(e, 'login'));
     } finally {

@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { AuthLayout } from '../../../shared/layouts/AuthLayout';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../../shared/types/navigation';
+import type { AuthStackParamList, RootStackParamList } from '../../../shared/types/navigation';
 import { useAuth } from '../../../shared/auth/AuthContext';
 import { ArrowLeft } from 'lucide-react-native';
 
 export function LoginScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList & RootStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'Login'>>();
   const role = route.params?.role;
   const { login } = useAuth();
@@ -24,6 +24,12 @@ export function LoginScreen() {
     setLoading(true);
     try {
       await login(email.trim(), password, role ?? 'investor');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'BrandDrawer' }],
+        })
+      );
     } catch (e: any) {
       const msg =
         e?.response?.data?.message || e?.message || 'Login failed. Please try again.';

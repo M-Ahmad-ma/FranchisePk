@@ -9,18 +9,23 @@ import {
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { HelpCircle, LogOut, Save, Camera, Eye, EyeOff } from 'lucide-react-native';
 import { launchImageLibrary, type Asset } from 'react-native-image-picker';
-import Avatar from '../../../shared/components/Avatar';
+import UserAvatar from '../../../shared/components/UserAvatar';
 import Button from '../../../shared/components/Button';
 import { useAuth } from '../../../shared/auth/AuthContext';
 import { imageUrl } from '../../../shared/api/imageUrl';
 import { useBrandProfile, useUpdateBrandProfile } from '../../../shared/hooks/useBrand';
 import { Skeleton } from '../../../shared/components/Skeleton';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../../shared/types/navigation';
+import { CommonActions } from '@react-navigation/native';
 
 const field =
   'bg-white rounded-2xl px-4 py-3.5 text-neutral-900 font-lato text-base border border-neutral-200';
 
 export function BrandProfileScreen() {
   const { user, logout, updateUser } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const profileQuery = useBrandProfile();
   const updateMutation = useUpdateBrandProfile();
 
@@ -56,12 +61,6 @@ export function BrandProfileScreen() {
   const displayName =
     [firstName, lastName].filter(Boolean).join(' ').trim() || user?.name || 'Brand Owner';
   const avatarUri = image?.uri ?? imageUrl(profile?.image ?? user?.image);
-  const initials = displayName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
 
   const handleSave = async () => {
     setMessage('');
@@ -115,11 +114,13 @@ export function BrandProfileScreen() {
               className="mb-4"
               style={{ elevation: 4, shadowColor: '#5279AC', shadowOpacity: 0.2, shadowRadius: 12, borderRadius: 999 }}
             >
-              <Avatar
-                source={avatarUri ? { uri: avatarUri } : undefined}
+              <UserAvatar
                 size={88}
-                initials={initials}
+                imageUri={avatarUri}
+                name={displayName}
+                initialsStyle="full"
                 className="bg-primary-700"
+                onPress={null}
               />
               <View className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary-700 items-center justify-center border-2 border-white">
                 <Camera size={14} color="#FFFFFF" />
@@ -241,7 +242,15 @@ export function BrandProfileScreen() {
             className="py-3.5"
             icon={<LogOut size={18} color="#5279AC" />}
             iconPosition="left"
-            onPress={() => logout()}
+            onPress={async () => {
+              await logout();
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'InvestorDrawer' }],
+                })
+              );
+            }}
           />
         </View>
       </ScrollView>

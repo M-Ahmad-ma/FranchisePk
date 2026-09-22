@@ -3,12 +3,15 @@ import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { usePartners } from '../../../shared/hooks/useContent';
 import { partnerLogoUrl } from '../../../shared/api/imageUrl';
 import { Skeleton } from '../../../shared/components/Skeleton';
+import UserAvatar from '../../../shared/components/UserAvatar';
 
 export function Partners() {
   const { data, isLoading, isError } = usePartners();
 
   return (
-    <MainLayout>
+    <MainLayout showHeader={true} headerRight={
+      <UserAvatar />
+    }>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-6 pt-8 pb-2">
           <Text className="text-primary-700 text-sm font-lato-bold tracking-[2px] uppercase mb-3">

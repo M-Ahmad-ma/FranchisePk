@@ -37,9 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
 
-  setTokenProvider(() => Promise.resolve(token));
+  setTokenProvider(() => Promise.resolve({ token, role: user?.role ?? null }));
 
   const handleUnauthorized = useCallback(() => {
+    console.log('[AuthContext] handleUnauthorized called — clearing auth');
     setUser(null);
     setToken(null);
     authService.clearAuth();
@@ -51,20 +52,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const storedToken = await authService.getStoredToken();
-        if (storedToken) {
+        console.log('[AuthContext][useEffect] storedToken:', storedToken ? storedToken.substring(0, 20) + '...' : null);
+        if (storedToken !== null) {
           setToken(storedToken);
           const storedUser = await authService.getStoredUser();
+          console.log('[AuthContext][useEffect] storedUser:', storedUser ? { name: storedUser.name, role: storedUser.role, email: storedUser.email } : null);
           if (storedUser) {
             setUser(storedUser);
           }
-          // Refresh profile from the API; fall back to stored user on failure.
-          try {
-            const fresh = await authService.getProfile();
-            setUser(fresh);
-          } catch {
-            // keep stored user
+          // Brand tokens are issued by /userpanel/auth/login and are not
+          // recognized by GET /auth/profile, so skip the refresh for brand users.
+          if (storedUser?.role !== 'brand') {
+            console.log('[AuthContext][useEffect] non-brand user, refreshing profile from API');
+            try {
+              const fresh = await authService.getProfile();
+              console.log('[AuthContext][useEffect] profile refreshed:', fresh?.name);
+              setUser(fresh);
+            } catch (e: any) {
+              console.log('[AuthContext][useEffect] getProfile FAILED:', e?.response?.status, e?.message);
+              // keep stored user
+            }
+          } else {
+            console.log('[AuthContext][useEffect] brand user, skipping getProfile');
           }
         } else if (BYPASS_AUTH) {
+          console.log('[AuthContext][useEffect] no stored token, using BYPASS_AUTH');
           const mockUser: User = {
             id: 0,
             name: 'Dev User',
@@ -78,17 +90,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setToken('dev-bypass-token');
           setUser(mockUser);
         } else {
-          // Persist guest browsing so investors aren't re-shown the
-          // "Get Started" form on every app launch.
+          console.log('[AuthContext][useEffect] no stored token, checking guest');
           const storedGuest = await authService.getStoredGuest();
+          console.log('[AuthContext][useEffect] storedGuest:', storedGuest);
           if (storedGuest) {
             setIsGuest(true);
           }
         }
-      } catch {
+      } catch (e: any) {
+        console.log('[AuthContext][useEffect] OUTER CATCH:', e?.message);
         await authService.clearAuth();
       } finally {
         setIsLoading(false);
+        console.log('[AuthContext][useEffect] done, isLoading=false');
       }
     })();
   }, []);
@@ -126,7 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authService.logout();
     setUser(null);
     setToken(null);
-    setIsGuest(false);
+    setIsGuest(true);
+    await authService.setStoredGuest(true);
   }, []);
 
   const handleMockLoginAsBrand = useCallback((email: string) => {

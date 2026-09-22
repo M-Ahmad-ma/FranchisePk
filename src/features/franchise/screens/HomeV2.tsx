@@ -21,6 +21,9 @@ import { catImageUrl, imageUrl } from '../../../shared/api/imageUrl';
 import { ChevronRight, ImageOff } from 'lucide-react-native';
 import { TestimonialsSection } from '../../home/components/TestimonialsSection';
 import { Skeleton } from '../../../shared/components/Skeleton';
+import { Category } from '../../../shared/api/types';
+import { Log } from '../../../shared/utils/Log';
+import UserAvatar from '../../../shared/components/UserAvatar';
 
 function HomeV2() {
   const { width } = useWindowDimensions();
@@ -33,6 +36,9 @@ function HomeV2() {
   const featuredCompanies = homeQuery?.data?.featured || []
   const featuredArray = Object.values(featuredCompanies || {});
   const testimonials = homeQuery?.data?.testimonials || [];
+
+
+  Log("categories", categories)
 
   // Filter options sourced from the home API
   const industries: FilterOption[] = categories.map((c) => ({
@@ -59,8 +65,6 @@ function HomeV2() {
     });
   };
 
-
-
   const renderCategoryItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       className="flex-1 m-1 p-3 bg-transparent rounded-lg  "
@@ -86,9 +90,11 @@ function HomeV2() {
   );
 
   return (
-    <MainLayout showHeader={true}>
+    <MainLayout
+      showHeader={true}
+      headerRight={<UserAvatar size={44} />}
+    >
       <ScrollView>
-
         <ImageBackground
           source={bgImage}
           resizeMode="cover"
@@ -110,7 +116,6 @@ function HomeV2() {
           />
         </ImageBackground>
 
-        {/* Categories Grid */}
         <View className="px-2 py-4 bg-transparent">
           {homeQuery.isLoading ? (
             <View className="flex-row flex-wrap">
@@ -118,7 +123,7 @@ function HomeV2() {
                 <View
                   key={i}
                   className="p-3 m-1 border border-neutral-200 rounded-lg"
-                  style={{ width: `100%` }}
+                  style={{ width: `${100 / numColumns}%` }}
                 >
                   <Skeleton className="w-full h-20 rounded-xl mb-2" />
                   <Skeleton className="w-3/4 h-4 mx-auto" />
@@ -126,16 +131,24 @@ function HomeV2() {
               ))}
             </View>
           ) : (
-            <FlatList
-              data={categories}
-              key={numColumns} // forces re-render on width change
-              keyExtractor={(item) => item.c_id.toString()}
-              renderItem={renderCategoryItem}
-              numColumns={numColumns}
-              columnWrapperStyle={{ justifyContent: 'space-between' }}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 20 }}
-            />
+            <>
+              <View className="flex-row flex-wrap px-1">
+                {categories?.map((item) => (
+                  <View
+                    key={item.c_id}
+                    style={{ width: `${100 / numColumns}%` }}
+                  >
+                    {renderCategoryItem({ item })}
+                  </View>
+                ))}
+              </View>
+
+              {(!categories || categories.length === 0) && (
+                <View className="items-center justify-center py-8">
+                  <Text className="text-neutral-500">No categories found</Text>
+                </View>
+              )}
+            </>
           )}
         </View>
 

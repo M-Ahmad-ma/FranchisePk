@@ -5,6 +5,7 @@ import apiClient from '../api/client';
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
 const GUEST_KEY = 'auth_guest';
+const ROLE_KEY = 'auth_role';
 
 export interface AuthSession {
   token: string;
@@ -20,6 +21,10 @@ export async function getStoredUser(): Promise<User | null> {
   return raw ? (JSON.parse(raw) as User) : null;
 }
 
+export async function getStoredRole(): Promise<UserRole | null> {
+  return (await AsyncStorage.getItem(ROLE_KEY)) as UserRole | null;
+}
+
 export async function getStoredGuest(): Promise<boolean> {
   return (await AsyncStorage.getItem(GUEST_KEY)) === 'true';
 }
@@ -32,16 +37,20 @@ export async function setStoredGuest(isGuest: boolean) {
   }
 }
 
-async function persistAuth(token: string, user: User) {
-  console.log('[AuthService][persistAuth] token:', token ? token.substring(0, 20) + '...' : token, 'user.role:', user?.role);
+async function persistAuth(token: string, user: User, role?: UserRole) {
+  console.log('[AuthService][persistAuth] saving token:', token ? token.substring(0, 30) + '...' : 'EMPTY/NULL', 'role:', role, 'user.role:', user?.role);
   await AsyncStorage.setItem(TOKEN_KEY, token);
   await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+  if (role) await AsyncStorage.setItem(ROLE_KEY, role);
+  const verify = await AsyncStorage.getItem(TOKEN_KEY);
+  console.log('[AuthService][persistAuth] verify readback:', verify ? verify.substring(0, 30) + '...' : 'EMPTY/NULL');
 }
 
 export async function clearAuth() {
   await AsyncStorage.removeItem(TOKEN_KEY);
   await AsyncStorage.removeItem(USER_KEY);
   await AsyncStorage.removeItem(GUEST_KEY);
+  await AsyncStorage.removeItem(ROLE_KEY);
 }
 
 function toUser(api: ApiLoginUser, role: UserRole): User {
@@ -75,9 +84,32 @@ export async function login(credentials: LoginRequest, role: UserRole = 'investo
           '/auth/login',
           credentials,
         );
-  const { token, user: rawUser } = res.data.data;
+
+  let token: string;
+  let rawUser: any;
+
+  if (role === 'brand') {
+    // Brand login uses session cookies (ci_session), not bearer tokens.
+    // The response body has data.user but no data.token.
+    const setCookie = res.headers['set-cookie'];
+    let cookieStr = Array.isArray(setCookie) ? setCookie.join('; ') : (setCookie ?? '');
+    const match = cookieStr.match(/ci_session=([^;]+)/);
+    token = match ? match[1] : '';
+
+    // The user object is at data.user
+    rawUser = (res.data.data as any)?.user ?? res.data.data;
+
+    // If no cookie was available, use user_id as a pseudo-token so
+    // isAuthenticated becomes true and the app persists the session.
+    if (!token && rawUser?.user_id) {
+      token = `brand-session-${rawUser.user_id}`;
+    }
+  } else {
+    ({ token, user: rawUser } = res.data.data);
+  }
+
   const user = toUser(rawUser, role);
-  await persistAuth(token, user);
+  await persistAuth(token, user, role);
   return { token, user };
 }
 

@@ -17,9 +17,10 @@ import Button from '../../../shared/components/Button';
 import { useTeam } from '../../../shared/hooks/useContent';
 import { imageUrl } from '../../../shared/api/imageUrl';
 import { Skeleton } from '../../../shared/components/Skeleton';
-import { CheckCircle2, ChevronDown, Phone, Mail } from 'lucide-react-native';
+import { CheckCircle2, ChevronDown, Phone, Mail, UserRound } from 'lucide-react-native';
 import * as companyService from '../../../shared/api/companyService';
 import type { TeamEmployee, Company, City } from '../../../shared/api/types';
+import UserAvatar from '../../../shared/components/UserAvatar';
 
 export function TeamScreen() {
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -117,7 +118,12 @@ export function TeamScreen() {
   const openLink = (url: string) => Linking.openURL(url).catch(() => { });
 
   return (
-    <MainLayout>
+    <MainLayout
+      showHeader={true}
+      headerRight={
+        <UserAvatar />
+      }
+    >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className='flex items-center justify-center py-9'>
           <View className='max-w-[300px]'>

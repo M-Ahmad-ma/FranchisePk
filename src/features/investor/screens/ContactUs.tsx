@@ -24,6 +24,7 @@ import {
 } from 'lucide-react-native';
 import * as companyService from '../../../shared/api/companyService';
 import type { Company, City } from '../../../shared/api/types';
+import UserAvatar from '../../../shared/components/UserAvatar';
 
 interface Office {
   id: string;
@@ -95,10 +96,10 @@ export function ContactUs() {
   useEffect(() => {
     companyService.getCities().then((d) => {
       if (Array.isArray(d.cities)) setCities(d.cities);
-    }).catch(() => {});
+    }).catch(() => { });
     companyService.getCompanies().then((d) => {
       if (Array.isArray(d.companies)) setCompanies(d.companies);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const cityValue = (c: City): string =>
@@ -150,10 +151,15 @@ export function ContactUs() {
     }
   };
 
-  const openLink = (url: string) => Linking.openURL(url).catch(() => {});
+  const openLink = (url: string) => Linking.openURL(url).catch(() => { });
 
   return (
-    <MainLayout>
+    <MainLayout
+      showHeader={true}
+      headerRight={
+        <UserAvatar />
+      }
+    >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="flex items-center justify-center py-9">
           <View className="max-w-[300px]">

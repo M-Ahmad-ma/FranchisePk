@@ -8,11 +8,13 @@ interface AppHeaderProps {
   containerClassName?: string;
   Logo?: ImageSourcePropType;
   icon?: ReactNode;
+  rightElement?: ReactNode;
 }
 
 const AppHeaderV2: React.FC<AppHeaderProps> = ({
-  containerClassName = "gap-2 px-4 py-2",
-  Logo
+  containerClassName = "px-4 py-2",
+  Logo,
+  rightElement,
 }) => {
   const navigation = useNavigation()
   return (
@@ -25,6 +27,7 @@ const AppHeaderV2: React.FC<AppHeaderProps> = ({
         </TouchableOpacity>
       </View>
       <Image className="w-[70%]" resizeMode="stretch" source={Logo} />
+      {rightElement ? <View>{rightElement}</View> : null}
     </View>
   );
 };

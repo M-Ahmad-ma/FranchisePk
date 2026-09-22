@@ -3,12 +3,18 @@ import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { Briefcase, Send } from 'lucide-react-native';
 import { useJobs } from '../../../shared/hooks/useContent';
 import { Skeleton } from '../../../shared/components/Skeleton';
+import UserAvatar from '../../../shared/components/UserAvatar';
 
 export function VacancyScreen() {
   const { data, isLoading, isError } = useJobs();
 
   return (
-    <MainLayout>
+    <MainLayout
+      showHeader={true}
+      headerRight={
+        <UserAvatar />
+      }
+    >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-6 pt-8 pb-2">
           <Text className="text-primary-700 text-sm font-lato-bold tracking-[2px] uppercase mb-3">

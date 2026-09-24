@@ -41,8 +41,10 @@ export async function getBrandDashboard() {
 
 // ─── Companies (brands) ──────────────────────────────────────────────────
 
-export async function getBrandCompanies() {
-  const res = await apiClient.get<ApiResponse<{ companies: Company[] }>>('/userpanel/companies');
+export async function getBrandCompanies(userId: number | string) {
+  const res = await apiClient.get<ApiResponse<{ companies: Company[] }>>(
+    `/userpanel/companies/${userId}`,
+  );
   return res.data.data;
 }
 
@@ -57,25 +59,64 @@ export async function getBrandCompany(id: string | number) {
 }
 
 export async function createCompany(payload: CompanyPayload) {
-  const res = await apiClient.post<ApiResponse<boolean>>('/userpanel/companies/create', payload);
+  const formData = new FormData();
+  const { images, ...fields } = payload;
+
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value == null || value === '') return;
+    formData.append(key, String(value));
+  });
+
+  (images ?? []).forEach((image, index) => {
+    formData.append(`image_${index + 1}`, {
+      uri: image.uri,
+      name: image.name,
+      type: image.type,
+    } as any);
+  });
+
+  const res = await apiClient.post<ApiResponse<boolean>>(
+    '/userpanel/companies/create',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
   return res.data;
 }
 
 export async function updateCompany(id: string | number, payload: CompanyPayload) {
+  const formData = new FormData();
+  const { images, ...fields } = payload;
+
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value == null || value === '') return;
+    formData.append(key, String(value));
+  });
+
+  (images ?? []).forEach((image, index) => {
+    formData.append(`image_${index + 1}`, {
+      uri: image.uri,
+      name: image.name,
+      type: image.type,
+    } as any);
+  });
+
   const res = await apiClient.post<ApiResponse<boolean>>(
     `/userpanel/companies/update/${id}`,
-    payload,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
   );
   return res.data;
 }
 
 // ─── Leads ───────────────────────────────────────────────────────────────
 
-export async function getInvestorRequests() {
-  const res = await apiClient.get<ApiResponse<{ investrequests: InvestorLead[] }>>(
-    '/userpanel/investor-requests',
+export async function getCompanyLeads(coId: string | number) {
+  const res = await apiClient.get<ApiResponse<{ investrequests: InvestorLead[] } | InvestorLead[]>>(
+    `/userpanel/company-leads/${coId}`,
   );
-  return res.data.data;
+  const data = res.data.data;
+  const investrequests = Array.isArray(data) ? data : (data?.investrequests ?? []);
+  return { investrequests };
 }
 
 export async function getFranchiseRequests() {

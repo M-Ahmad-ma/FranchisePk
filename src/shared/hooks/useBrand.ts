@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as userpanel from '../api/userpanelService';
-import type { CompanyPayload } from '../api/types';
+import type { CompanyPayload, InvestorLead } from '../api/types';
+import { useAuth } from '../auth/AuthContext';
 
 export function useBrandDashboard() {
   return useQuery({
@@ -11,9 +12,13 @@ export function useBrandDashboard() {
 }
 
 export function useBrandCompanies() {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   return useQuery({
-    queryKey: ['userpanel', 'companies'],
-    queryFn: userpanel.getBrandCompanies,
+    queryKey: ['userpanel', 'companies', userId],
+    queryFn: () => userpanel.getBrandCompanies(userId!),
+    enabled: !!userId,
     staleTime: 60 * 1000,
   });
 }
@@ -59,12 +64,45 @@ export function useUpdateCompany() {
   });
 }
 
-export function useInvestorRequests() {
+export function useCompanyLeads(coId: string | number | undefined) {
   return useQuery({
-    queryKey: ['userpanel', 'leads', 'investor'],
-    queryFn: userpanel.getInvestorRequests,
+    queryKey: ['userpanel', 'leads', 'investor', 'company', coId],
+    enabled: coId != null && coId !== '',
+    queryFn: () => userpanel.getCompanyLeads(coId!),
     staleTime: 30 * 1000,
   });
+}
+
+export function useInvestorRequests() {
+  const companiesQuery = useBrandCompanies();
+  const companies = companiesQuery.data?.companies ?? [];
+  const companyIds = companies
+    .map((c) => c.co_id)
+    .filter((id): id is string => typeof id === 'string' && id !== '' && id !== '0');
+
+  const companyIdsKey = companyIds.join(',');
+
+  const leadsQuery = useQuery({
+    queryKey: ['userpanel', 'leads', 'investor', companyIdsKey],
+    enabled: companiesQuery.isSuccess && companyIds.length > 0,
+    queryFn: async () => {
+      const results = await Promise.all(companyIds.map((id) => userpanel.getCompanyLeads(id)));
+      const investrequests = results.flatMap((r) => r.investrequests ?? []);
+      return { investrequests };
+    },
+    staleTime: 30 * 1000,
+  });
+
+  return {
+    ...leadsQuery,
+    isLoading: companiesQuery.isLoading || leadsQuery.isLoading,
+    isError: companiesQuery.isError || leadsQuery.isError,
+    isFetching: companiesQuery.isFetching || leadsQuery.isFetching,
+    data:
+      companiesQuery.isSuccess && companyIds.length === 0
+        ? { investrequests: [] as InvestorLead[] }
+        : leadsQuery.data,
+  };
 }
 
 export function useFranchiseRequests() {

@@ -40,6 +40,7 @@ export function SignupScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'Signup'>>();
   const role = route.params?.role;
+  const intent = route.params?.intent ?? 'signup';
   const [selected, setSelected] = useState<AuthRole | null>(null);
 
   const goBackToHome = () => {
@@ -49,6 +50,16 @@ export function SignupScreen() {
 
   const onContinue = () => {
     if (!selected) return;
+
+    if (intent === 'login') {
+      if (selected === 'brand') {
+        navigation.replace('BrandLogin', { role: 'brand' });
+      } else {
+        navigation.replace('Login', { role: 'investor' });
+      }
+      return;
+    }
+
     if (selected === 'brand') {
       navigation.replace('BrandSignup', { role: 'brand' });
     } else {
@@ -82,10 +93,14 @@ export function SignupScreen() {
         </View>
 
         <Text className="text-neutral-900 font-lato-black text-2xl mb-1">
-          How would you like to join?
+          {intent === 'login' ? 'Sign in as…' : 'How would you like to join?'}
         </Text>
         <Text className="text-neutral-600 font-lato text-sm mb-6">
-          {role ? `Creating a ${role} account.` : 'Choose the path that fits you.'}
+          {role
+            ? `Continue with your ${role} account.`
+            : intent === 'login'
+              ? 'Choose your account type to log in.'
+              : 'Choose the path that fits you.'}
         </Text>
 
         <View className="flex-row gap-3.5">
@@ -178,7 +193,9 @@ export function SignupScreen() {
         </TouchableOpacity>
 
         <Text className="text-neutral-400 font-lato text-xs text-center mt-4">
-          Investors can browse instantly — a brand account needs sign up.
+          {intent === 'login'
+            ? 'Pick your role to continue to login.'
+            : 'Investors can browse instantly — a brand account needs sign up.'}
         </Text>
       </ScrollView>
     </AuthLayout>

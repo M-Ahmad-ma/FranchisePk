@@ -259,7 +259,7 @@ export interface BrandDashboardStats {
   [key: string]: any;
 }
 
-/** An investor lead from GET /userpanel/investor-requests. */
+/** An investor lead from GET /userpanel/company-leads/:co_id. */
 export interface InvestorLead {
   id?: string | number;
   firstname?: string;
@@ -319,18 +319,48 @@ export interface CompanyCreateData {
   countries: any[];
 }
 
-/** Payload for creating/updating a company. */
+/** Form image asset for multipart uploads. */
+export interface FormImage {
+  uri: string;
+  name: string;
+  type: string;
+}
+
+/**
+ * Payload for POST /userpanel/companies/create.
+ * Keys match CodeIgniter `$this->input->post(...)` in company_add / company_contact_person.
+ */
 export interface CompanyPayload {
+  huid?: string | number;
   name?: string;
-  co_name?: string;
-  category_id?: string | number;
-  city_id?: string | number;
-  country_id?: string | number;
-  description?: string;
-  overview?: string;
-  total_investment?: string;
+  number?: string;
+  url?: string;
+  cash?: string;
+  fee?: string;
   franchise_fee?: string;
-  royalty_fee?: string;
+  total_investment?: string;
+  royality_fee?: string;
+  postal_address?: string;
+  description?: string;
+  category?: string;
+  city?: string;
+  country?: string;
+  province?: string;
+  slug?: string;
+  currencytype?: string;
+  contact_person?: string;
+  designation?: string;
+  email_address?: string;
+  mobile_number?: string;
+  brand_slogan?: string;
+  company_year?: string;
+  franchise_years?: string;
+  franchise_turnover?: string;
+  average_turnover?: string;
+  commision_type?: string;
+  type_of_company?: string;
+  video_link?: string;
+  images?: FormImage[];
   [key: string]: any;
 }
 

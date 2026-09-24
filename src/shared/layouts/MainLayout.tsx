@@ -1,6 +1,5 @@
-import { View, StatusBar } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AppHeader from '../components/AppHeader';
 import AppHeaderV2 from '../components/AppHeaderV2';
 import { Menu } from 'lucide-react-native';
 import Logo from "../../../assets/FranchiseLogo.png"

@@ -106,7 +106,12 @@ export function BrandProfileScreen() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout
+      showHeader={true}
+      headerRight={
+        <UserAvatar />
+      }
+    >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         <View className="items-center pt-8 pb-2 px-4">
           <TouchableOpacity onPress={handlePickImage} activeOpacity={0.7}>

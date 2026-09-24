@@ -6,17 +6,15 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { BrandTabParamList } from '../../../shared/types/navigation';
 import UserAvatar from '../../../shared/components/UserAvatar';
 import { Skeleton } from '../../../shared/components/Skeleton';
-import { useBrandDashboard, useInvestorRequests } from '../../../shared/hooks/useBrand';
-import { toArray, fullName } from '../../../shared/utils/collections';
-import type { InvestorLead } from '../../../shared/api/types';
+import { useBrandDashboard, useBrandCompanies } from '../../../shared/hooks/useBrand';
+import { toArray } from '../../../shared/utils/collections';
+import type { Company } from '../../../shared/api/types';
 import {
   Store,
   Users,
   Eye,
   Plus,
-  ArrowRight,
   BriefcaseBusiness,
-  Layers,
 } from 'lucide-react-native';
 import { Log } from '../../../shared/utils/Log';
 
@@ -33,16 +31,16 @@ export function BrandDashboardScreen() {
   const displayCompany = user?.company || 'My Brand';
 
   const dashboard = useBrandDashboard();
-  const leadsQuery = useInvestorRequests();
+  const companiesQuery = useBrandCompanies();
   const stats = dashboard.data?.stats;
-  const leads = toArray<InvestorLead>(leadsQuery.data?.investrequests).slice(0, 4);
+  const companies = toArray<Company>(companiesQuery.data?.companies ?? []).slice(0, 4);
 
-  Log("leads", leads)
-  Log("user", user)
-  Log("stats", stats)
-  Log("dashboard", dashboard)
+  Log('companies', companies);
+  Log('user', user);
+  Log('stats', stats);
+  Log('dashboard', dashboard);
 
-  const isLoading = dashboard.isLoading || leadsQuery.isLoading;
+  const isLoading = dashboard.isLoading || companiesQuery.isLoading;
 
   const handleProfilePress = () => {
     navigation.navigate("BrandProfile")
@@ -66,10 +64,10 @@ export function BrandDashboardScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={dashboard.isFetching || leadsQuery.isFetching}
+            refreshing={dashboard.isFetching || companiesQuery.isFetching}
             onRefresh={() => {
               dashboard.refetch();
-              leadsQuery.refetch();
+              companiesQuery.refetch();
             }}
             tintColor="#5279AC"
           />
@@ -158,13 +156,16 @@ export function BrandDashboardScreen() {
           </View>
         </View>
 
-        {/* recent leads */}
+        {/* recent brands → open company leads */}
         <View className="px-4 pb-10">
           <View className="flex-row items-center justify-between mb-3">
             <Text className="text-primary-700 text-sm font-lato-bold tracking-[2px] uppercase">
-              Recent Leads
+              Recent Brands
             </Text>
-            <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('BrandLeads')}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('BrandFranchises', { screen: 'BrandCompaniesList' })}
+            >
               <Text className="text-primary-700 font-lato-bold text-sm">View all</Text>
             </TouchableOpacity>
           </View>
@@ -181,13 +182,13 @@ export function BrandDashboardScreen() {
                 </View>
               ))}
             </View>
-          ) : leads.length === 0 ? (
+          ) : companies.length === 0 ? (
             <View className="bg-white rounded-2xl border border-neutral-200 items-center py-10 px-6">
               <View className="w-12 h-12 rounded-full bg-tertiary-200 items-center justify-center mb-3">
                 <Users size={22} color="#0F9CC9" />
               </View>
               <Text className="text-neutral-500 text-sm text-center">
-                No leads yet. When investors reach out, they'll appear here.
+                No brands yet. Add a brand to start receiving leads.
               </Text>
             </View>
           ) : (
@@ -195,28 +196,37 @@ export function BrandDashboardScreen() {
               className="bg-white rounded-2xl border border-neutral-200"
               style={{ elevation: 2, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8 }}
             >
-              {leads.map((lead, index) => {
-                const name = lead.e_firstname || fullName(lead.e_firstname, lead.e_lastname, 'Investor');
-                const contact = lead.e_phonenumber || lead.co_name || lead.email || '';
+              {companies.map((company, index) => {
+                const name = company.co_name || 'Unnamed brand';
+                const detail =
+                  company.co_investment_range ||
+                  company.co_website_url ||
+                  company.co_description ||
+                  '';
                 return (
                   <TouchableOpacity
-                    key={String(lead.id ?? index)}
-                    className={`flex-row items-center px-4 py-3.5 ${index < leads.length - 1 ? 'border-b border-neutral-200' : ''}`}
+                    key={String(company.co_id ?? index)}
+                    className={`flex-row items-center px-4 py-3.5 ${index < companies.length - 1 ? 'border-b border-neutral-200' : ''}`}
                     activeOpacity={0.6}
-                    onPress={() => navigation.navigate('BrandLeads')}
+                    onPress={() =>
+                      navigation.navigate('BrandLeads', {
+                        coId: String(company.co_id),
+                        coName: name,
+                        returnTo: 'BrandDashboard',
+                      })
+                    }
                   >
-                    {/* <View className="w-10 h-10 rounded-full bg-tertiary-200 items-center justify-center"> */}
-                    {/*   <Text className="text-tertiary-700 font-lato-bold"> */}
-                    {/*     {name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()} */}
-                    {/*   </Text> */}
-                    {/* </View> */}
-                    <View className="flex-1 ml-3">
-                      <View className='flex items-center justify-between flex-row'>
-                        <Text className="text-neutral-900 font-lato-bold text-lg">{name}</Text>
-                        {/* <Text className="text-neutral-500 text-[12px] font-normal ">{contact}</Text> */}
+                    <View className="flex-1">
+                      <View className="flex items-center justify-between flex-row">
+                        <Text className="text-neutral-900 font-lato-bold text-lg" numberOfLines={1}>
+                          {name}
+                        </Text>
                       </View>
-
-                      <Text className='text-sm w-[70%] font-normal mt-3'>{lead.e_message}</Text>
+                      {!!detail && (
+                        <Text className="text-sm w-[70%] font-normal mt-3" numberOfLines={2}>
+                          {detail}
+                        </Text>
+                      )}
                     </View>
                     <Eye size={16} color="#A3ABC4" />
                   </TouchableOpacity>

@@ -39,12 +39,24 @@ export function LoginScreen() {
     }
   };
 
+  const handleSignUp = () => {
+    if (role === 'brand') {
+      navigation.navigate('BrandSignup', { role: 'brand' });
+      return;
+    }
+    if (role === 'investor') {
+      navigation.navigate('InvestorGetStarted');
+      return;
+    }
+    navigation.navigate('Signup', { intent: 'signup' });
+  };
+
   return (
     <AuthLayout>
       {role && (
         <View className="absolute top-6 left-6 right-6 flex-row items-center justify-between z-50">
           <TouchableOpacity
-            onPress={() => navigation.replace('Signup', { role })}
+            onPress={() => navigation.replace('Signup', { role, intent: 'signup' })}
             activeOpacity={0.7}
             className="flex-row items-center gap-2"
           >
@@ -75,7 +87,7 @@ export function LoginScreen() {
           </View>
           <TouchableOpacity
             className="flex-1 py-2 border-b-2 border-neutral-200"
-            onPress={() => navigation.navigate('Signup', { role })}
+            onPress={handleSignUp}
             activeOpacity={0.7}
           >
             <Text className="text-neutral-600 text-center font-lato-bold text-base">Sign Up</Text>

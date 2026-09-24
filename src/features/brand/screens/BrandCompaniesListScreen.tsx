@@ -1,28 +1,50 @@
 import { FlatList, Text, View, TouchableOpacity, RefreshControl, Image } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { useNavigation } from '@react-navigation/native';
+import type { CompositeNavigationProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { BrandFranchisesStackParamList } from '../../../shared/types/navigation';
-import Card from '../../home/components/Card';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type {
+  BrandFranchisesStackParamList,
+  BrandTabParamList,
+} from '../../../shared/types/navigation';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import { useBrandCompanies } from '../../../shared/hooks/useBrand';
 import { toArray } from '../../../shared/utils/collections';
 import { getCompanyCoverImage } from '../../../shared/utils/franchise';
 import type { Company } from '../../../shared/api/types';
-import { ChevronRight, Plus, Store } from 'lucide-react-native';
+import { ChevronRight, Plus, Store, Pencil, User } from 'lucide-react-native';
 import { Log } from '../../../shared/utils/Log';
+import UserAvatar from '../../../shared/components/UserAvatar';
+
+type Navigation = CompositeNavigationProp<
+  NativeStackNavigationProp<BrandFranchisesStackParamList>,
+  BottomTabNavigationProp<BrandTabParamList>
+>;
 
 export function BrandCompaniesListScreen() {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<BrandFranchisesStackParamList>>();
+  const navigation = useNavigation<Navigation>();
   const query = useBrandCompanies();
   const companies = toArray<Company>(query.data?.companies ?? query.data);
+
+  const openCompanyLeads = (company: Company) => {
+    navigation.navigate('BrandLeads', {
+      coId: String(company.co_id),
+      coName: company.co_name,
+      returnTo: 'BrandFranchises',
+    });
+  };
 
 
   Log("companies", companies)
 
   return (
-    <MainLayout>
+    <MainLayout
+      showHeader={true}
+      headerRight={
+        <UserAvatar />
+      }
+    >
       <View className="px-4 pt-6 pb-2 flex-row items-center justify-between">
         <View>
           <Text className="text-neutral-900 text-2xl font-lato-black">My Brands</Text>
@@ -55,11 +77,13 @@ export function BrandCompaniesListScreen() {
           <MinimalCard
             key={item.co_id}
             name={item.co_name}
-            description={item.co_description}
-            investmentRange={item.co_investment_range}
             website_url={item.co_website_url}
             co_office_number={item.co_office_number}
             imageUrl={getCompanyCoverImage(item)}
+            onPress={() => openCompanyLeads(item)}
+            onEdit={() =>
+              navigation.navigate('BrandCompanyForm', { id: String(item.co_id) })
+            }
           />
         )}
         ListEmptyComponent={
@@ -108,35 +132,63 @@ export function BrandCompaniesListScreen() {
   );
 }
 
-function MinimalCard({ name, description, investmentRange, imageUrl, onPress, website_url, co_office_number }) {
+type MinimalCardProps = {
+  name?: string;
+  imageUrl?: { uri: string };
+  onPress?: () => void;
+  onEdit?: () => void;
+  website_url?: string;
+  co_office_number?: string;
+};
+
+function MinimalCard({
+  name,
+  imageUrl,
+  onPress,
+  onEdit,
+  website_url,
+  co_office_number,
+}: MinimalCardProps) {
   return (
-    <TouchableOpacity
-      className="flex-row mb-2 items-center gap-5 px-5 py-4 bg-white rounded-xl border border-gray-100/70 active:border-primary/20 active:shadow-sm"
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      {imageUrl && (
-        <View className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
-          <Image
-            source={{ uri: imageUrl || 'https://via.placeholder.com/56x56?text=📦' }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        </View>
-      )}
+    <View className="flex-row mb-2 items-center gap-3 px-5 py-4 bg-white rounded-xl border border-gray-100/70">
+      <TouchableOpacity
+        className="flex-row flex-1 min-w-0 items-center gap-5"
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        {imageUrl && (
+          <View className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
+            <Image source={imageUrl} className="w-full h-full" resizeMode="cover" />
+          </View>
+        )}
 
+        <View className="flex-1 min-w-0">
+          <View className="flex flex-row items-center justify-between">
+            <Text className="text-sm font-semibold text-near-black" numberOfLines={1}>
+              {name || 'Unnamed'}
+            </Text>
 
-      <View className="flex-1 min-w-0">
-        <View className='flex flex-row items-center justify-between'>
-          <Text className="text-sm font-semibold text-near-black" numberOfLines={1}>
-            {name || 'Unnamed'}
+            <Text className="text-[12px] font-normal text-gray-600">
+              {co_office_number || 'not provided'}
+            </Text>
+          </View>
+          <Text className="text-sm font-normal text-gray-600">
+            {website_url || co_office_number || 'no website'}
           </Text>
-
-          <Text className='text-[12px] font-normal text-gray-600'>{co_office_number || "not provided"}</Text>
         </View>
-        <Text className='text-sm font-normal text-gray-600'>{website_url || co_office_number || "no website"}</Text>
-      </View>
 
-    </TouchableOpacity>
+        <ChevronRight size={16} color="#A3ABC4" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="w-9 h-9 rounded-full bg-primary-200 items-center justify-center"
+        activeOpacity={0.7}
+        onPress={onEdit}
+        hitSlop={8}
+        accessibilityLabel="Edit brand"
+      >
+        <Pencil size={15} color="#386092" />
+      </TouchableOpacity>
+    </View>
   );
 }

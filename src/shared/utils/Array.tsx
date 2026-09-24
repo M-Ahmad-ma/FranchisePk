@@ -678,6 +678,7 @@ export const quickActions = (navigation: any): quickActions[] => [
     onPress: () =>
       navigation.navigate("Auth", {
         screen: "Signup",
+        params: { intent: "signup" },
       }),
   },
 ];

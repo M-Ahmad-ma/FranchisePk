@@ -50,9 +50,9 @@ function CustomDrawerContent({
   const insets = useSafeAreaInsets();
   const activeRoute = state.routeNames[state.index];
 
-  const goToAuth = () => {
+  const goToAuth = (intent: 'login' | 'signup') => {
     const root = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-    root?.navigate('Auth', { screen: 'Signup' });
+    root?.navigate('Auth', { screen: 'Signup', params: { intent } });
     navigation.dispatch(DrawerActions.closeDrawer());
   };
 
@@ -109,14 +109,14 @@ function CustomDrawerContent({
         style={{ paddingBottom: insets.bottom + 12 }}
       >
         <Pressable
-          onPress={goToAuth}
+          onPress={() => goToAuth('login')}
           className="flex-row items-center justify-center gap-2 rounded-xl bg-primary-700 py-3"
         >
           <LogIn size={18} color="#FFFFFF" />
           <Text className="text-white font-lato-bold">Sign In</Text>
         </Pressable>
         <Pressable
-          onPress={goToAuth}
+          onPress={() => goToAuth('signup')}
           className="flex-row items-center justify-center gap-2 rounded-xl border border-neutral-300 py-3"
         >
           <UserPlus size={18} color="#565E74" />

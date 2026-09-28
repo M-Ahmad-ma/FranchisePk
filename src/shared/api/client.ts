@@ -57,6 +57,21 @@ apiClient.interceptors.response.use(
     if (!error.response) {
       console.log('[API][Error] No response received — network/SSL/DNS issue');
       console.log('[API][Error] Full error:', JSON.stringify(Object.keys(error)));
+      const native: unknown = (error.request as any)?.responseText;
+      console.log('[API][Error] native detail:', typeof native === 'string' ? native : String(native ?? 'n/a'));
+      console.log('[API][Error] event:', String((error as any)?.event?.message ?? 'none'));
+      const data: any = error.config?.data;
+      const parts: any[] | undefined = data && typeof data === 'object' ? data._parts : undefined;
+      if (Array.isArray(parts)) {
+        console.log(
+          '[API][Error] form parts:',
+          parts
+            .map(([k, v]: any) =>
+              v && typeof v === 'object' && v.uri ? `${k}->${v.uri}` : `${k}=${typeof v}`,
+            )
+            .join(' | '),
+        );
+      }
     }
     if (error.response) {
       console.log('[API][Error] Response data:', typeof error.response.data === 'string' ? error.response.data.substring(0, 200) : JSON.stringify(error.response.data).substring(0, 200));

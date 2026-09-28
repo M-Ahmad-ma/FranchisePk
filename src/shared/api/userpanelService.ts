@@ -83,12 +83,30 @@ export async function createCompany(payload: CompanyPayload) {
   return res.data;
 }
 
+/**
+ * Optional edit-only fields that must be sent even when blanked, so clearing
+ * a value in the edit form actually clears it server-side. Everything else
+ * stays skip-empty (the edit GET does not return every column, so a blind
+ * empty string could wipe a row the form never hydrated).
+ */
+const SEND_WHEN_EMPTY_ON_UPDATE = new Set([
+  'brand_slogan',
+  'company_year',
+  'franchise_years',
+  'franchise_turnover',
+  'average_turnover',
+  'commision_type',
+  'type_of_company',
+  'video_link',
+]);
+
 export async function updateCompany(id: string | number, payload: CompanyPayload) {
   const formData = new FormData();
   const { images, ...fields } = payload;
 
   Object.entries(fields).forEach(([key, value]) => {
-    if (value == null || value === '') return;
+    if (value == null) return;
+    if (value === '' && !SEND_WHEN_EMPTY_ON_UPDATE.has(key)) return;
     formData.append(key, String(value));
   });
 

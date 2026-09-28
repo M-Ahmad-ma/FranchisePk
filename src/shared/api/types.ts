@@ -352,6 +352,7 @@ export interface CompanyPayload {
   designation?: string;
   email_address?: string;
   mobile_number?: string;
+  /** Optional — only sent on update (`editpro`); `company_add` ignores them. */
   brand_slogan?: string;
   company_year?: string;
   franchise_years?: string;

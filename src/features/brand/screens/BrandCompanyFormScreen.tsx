@@ -242,7 +242,7 @@ export function BrandCompanyFormScreen() {
 
   const handleNameChange = (value: string) => {
     setName(value);
-    if (!isEdit && (!slug || slug === slugify(name))) {
+    if (!isEdit && (!slug || slug === slugify(value))) {
       setSlug(slugify(value));
     }
   };
@@ -316,7 +316,14 @@ export function BrandCompanyFormScreen() {
     }
 
     const finalSlug = effectiveSlug;
-    const newImages: FormImage[] = logo ? [logo, ...gallery] : gallery;
+
+    const newImages: FormImage[] = [];
+    if (logo) {
+      newImages.push(logo);
+    } else if (gallery.length > 0 && existingLogoUri) {
+      newImages.push({ uri: existingLogoUri, name: 'existing_logo.jpg', type: 'image/jpeg' });
+    }
+    newImages.push(...gallery);
 
     const payload = {
       huid: user?.id != null ? String(user.id) : undefined,
@@ -336,14 +343,18 @@ export function BrandCompanyFormScreen() {
       province: province.trim(),
       slug: finalSlug,
       currencytype,
-      brand_slogan: brandSlogan.trim(),
-      company_year: companyYear.trim(),
-      franchise_years: franchiseYears.trim(),
-      franchise_turnover: franchiseTurnover.trim(),
-      average_turnover: averageTurnover.trim(),
-      commision_type: commisionType.trim(),
-      type_of_company: typeOfCompany.trim(),
-      video_link: videoLink.trim(),
+      ...(isEdit
+        ? {
+            brand_slogan: brandSlogan.trim(),
+            company_year: companyYear.trim(),
+            franchise_years: franchiseYears.trim(),
+            franchise_turnover: franchiseTurnover.trim(),
+            average_turnover: averageTurnover.trim(),
+            commision_type: commisionType.trim(),
+            type_of_company: typeOfCompany.trim(),
+            video_link: videoLink.trim(),
+          }
+        : {}),
       contact_person: contactPerson.trim(),
       designation: designation.trim(),
       email_address: emailAddress.trim(),
@@ -437,8 +448,12 @@ export function BrandCompanyFormScreen() {
               <Text className={label}>Brand name *</Text>
               {textInput(name, handleNameChange, 'e.g. Acme Franchise')}
 
-              <Text className={label}>Brand slogan</Text>
-              {textInput(brandSlogan, setBrandSlogan, 'Short tagline for the brand')}
+              {isEdit ? (
+                <>
+                  <Text className={label}>Brand slogan</Text>
+                  {textInput(brandSlogan, setBrandSlogan, 'Short tagline for the brand')}
+                </>
+              ) : null}
 
               <Text className={label}>Office number *</Text>
               {textInput(number, setNumber, '+92 300 0000000', { keyboardType: 'phone-pad' })}
@@ -449,9 +464,6 @@ export function BrandCompanyFormScreen() {
               <Text className={label}>Category *</Text>
               {renderField('category', 'Select category')}
 
-              <Text className={label}>Company type</Text>
-              {textInput(typeOfCompany, setTypeOfCompany, 'e.g. Franchise / Chain')}
-
               <Text className={label}>Slug *</Text>
               {textInput(slug, setSlug, 'auto-from-name')}
 
@@ -460,25 +472,36 @@ export function BrandCompanyFormScreen() {
                 multiline: true,
               })}
 
-              <Text className={label}>Video link (YouTube)</Text>
-              {textInput(videoLink, setVideoLink, 'YouTube video ID or URL')}
+              {isEdit ? (
+                <>
+                  <Text className={label}>Company type</Text>
+                  {textInput(typeOfCompany, setTypeOfCompany, 'e.g. Franchise / Chain')}
 
-              <Text className={SECTION_TITLE}>About & performance</Text>
+                  <Text className={label}>Video link (YouTube)</Text>
+                  {textInput(videoLink, setVideoLink, 'YouTube video ID or URL')}
 
-              <Text className={label}>Established year</Text>
-              {textInput(companyYear, setCompanyYear, 'e.g. 2015', { keyboardType: 'numeric' })}
+                  <Text className={SECTION_TITLE}>About & performance</Text>
 
-              <Text className={label}>Franchising since</Text>
-              {textInput(franchiseYears, setFranchiseYears, 'e.g. 2018', { keyboardType: 'numeric' })}
+                  <Text className={label}>Established year</Text>
+                  {textInput(companyYear, setCompanyYear, 'e.g. 2015', { keyboardType: 'numeric' })}
 
-              <Text className={label}>Franchise turnover</Text>
-              {textInput(franchiseTurnover, setFranchiseTurnover, 'e.g. 12000000')}
+                  <Text className={label}>Franchising since</Text>
+                  {textInput(franchiseYears, setFranchiseYears, 'e.g. 2018', { keyboardType: 'numeric' })}
 
-              <Text className={label}>Average turnover</Text>
-              {textInput(averageTurnover, setAverageTurnover, 'e.g. 5000000')}
+                  <Text className={label}>Franchise turnover</Text>
+                  {textInput(franchiseTurnover, setFranchiseTurnover, 'e.g. 12000000', {
+                    keyboardType: 'numeric',
+                  })}
 
-              <Text className={label}>Commission type</Text>
-              {textInput(commisionType, setCommisionType, 'e.g. 5% or fixed fee')}
+                  <Text className={label}>Average turnover</Text>
+                  {textInput(averageTurnover, setAverageTurnover, 'e.g. 5000000', {
+                    keyboardType: 'numeric',
+                  })}
+
+                  <Text className={label}>Commission type</Text>
+                  {textInput(commisionType, setCommisionType, 'e.g. 5% or fixed fee')}
+                </>
+              ) : null}
 
               <Text className={SECTION_TITLE}>Location</Text>
 

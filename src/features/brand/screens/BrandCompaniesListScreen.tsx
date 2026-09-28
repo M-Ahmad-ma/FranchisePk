@@ -79,6 +79,8 @@ export function BrandCompaniesListScreen() {
             name={item.co_name}
             website_url={item.co_website_url}
             co_office_number={item.co_office_number}
+            con_mobilenumber={item.con_mobilenumber}
+            con_email={item.con_email}
             imageUrl={getCompanyCoverImage(item)}
             onPress={() => openCompanyLeads(item)}
             onEdit={() =>
@@ -146,8 +148,9 @@ function MinimalCard({
   imageUrl,
   onPress,
   onEdit,
-  website_url,
+  con_email,
   co_office_number,
+  con_mobilenumber
 }: MinimalCardProps) {
   return (
     <View className="flex-row mb-2 items-center gap-3 px-5 py-4 bg-white rounded-xl border border-gray-100/70">
@@ -169,11 +172,11 @@ function MinimalCard({
             </Text>
 
             <Text className="text-[12px] font-normal text-gray-600">
-              {co_office_number || 'not provided'}
+              {con_mobilenumber}
             </Text>
           </View>
           <Text className="text-sm font-normal text-gray-600">
-            {website_url || co_office_number || 'no website'}
+            {con_email || co_office_number || 'no website'}
           </Text>
         </View>
 

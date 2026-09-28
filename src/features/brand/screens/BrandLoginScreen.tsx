@@ -129,13 +129,6 @@ export function BrandLoginScreen() {
         </View>
 
         <TouchableOpacity
-          className="items-end mb-6"
-          onPress={() => navigation.navigate('BrandForgotPassword')}
-        >
-          <Text className="text-primary-700 font-lato-bold text-sm">Forgot password?</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           onPress={handleLogin}
           disabled={loading}
           className="bg-primary-700 w-full rounded-2xl py-4 items-center mb-6"

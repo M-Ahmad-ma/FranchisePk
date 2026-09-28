@@ -77,7 +77,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     if (!token) {
       // Navigate to Auth > Login (role brand); action bubbles to root stack
       (navigation as any).navigate('Auth', {
-        screen: 'Login',
+        screen: 'BrandLogin',
         params: { role: 'brand' },
       });
       return;

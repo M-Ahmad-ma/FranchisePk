@@ -58,6 +58,20 @@ export async function getBrandCompany(id: string | number) {
   return res.data.data;
 }
 
+/** Dev-only: dump FormData contents (fields + image parts) to the Metro console. */
+function logFormData(tag: string, formData: FormData) {
+  if (!__DEV__) return;
+  const parts: Array<[string, unknown]> = (formData as any)._parts ?? [];
+  const summary = parts.map(([key, value]) => {
+    if (value != null && typeof value === 'object' && 'uri' in (value as any)) {
+      const file = value as { uri?: string; name?: string; type?: string };
+      return [key, { kind: 'file', uri: file.uri, name: file.name, type: file.type }];
+    }
+    return [key, { kind: 'text', value }];
+  });
+  console.log(`[${tag}] FormData → ${parts.length} part(s):`, JSON.stringify(summary, null, 2));
+}
+
 export async function createCompany(payload: CompanyPayload) {
   const formData = new FormData();
   const { images, ...fields } = payload;
@@ -74,6 +88,8 @@ export async function createCompany(payload: CompanyPayload) {
       type: image.type,
     } as any);
   });
+
+  logFormData('company:create → POST /userpanel/companies/create', formData);
 
   const res = await apiClient.post<ApiResponse<boolean>>(
     '/userpanel/companies/create',
@@ -118,6 +134,8 @@ export async function updateCompany(id: string | number, payload: CompanyPayload
     } as any);
   });
 
+  logFormData(`company:update → POST /userpanel/companies/update/${id}`, formData);
+
   const res = await apiClient.post<ApiResponse<boolean>>(
     `/userpanel/companies/update/${id}`,
     formData,
@@ -131,6 +149,16 @@ export async function updateCompany(id: string | number, payload: CompanyPayload
 export async function getCompanyLeads(coId: string | number) {
   const res = await apiClient.get<ApiResponse<{ investrequests: InvestorLead[] } | InvestorLead[]>>(
     `/userpanel/company-leads/${coId}`,
+  );
+  const data = res.data.data;
+  const investrequests = Array.isArray(data) ? data : (data?.investrequests ?? []);
+  return { investrequests };
+}
+
+/** All investor leads across every company belonging to the logged-in user. */
+export async function getUserLeads(userId: number | string) {
+  const res = await apiClient.get<ApiResponse<{ investrequests: InvestorLead[] } | InvestorLead[]>>(
+    `/userpanel/company-user-leads/${userId}`,
   );
   const data = res.data.data;
   const investrequests = Array.isArray(data) ? data : (data?.investrequests ?? []);

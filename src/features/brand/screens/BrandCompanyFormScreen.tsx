@@ -61,9 +61,17 @@ function str(v: unknown): string {
   return String(v);
 }
 
+/** Wrap an already-hosted image URL so it can be posted back as part of the image set. */
+function toRemoteFormImage(uri: string): FormImage {
+  const name = decodeURIComponent(uri.split('/').pop() || `gallery_${Date.now()}.jpg`);
+  return { uri, name, type: 'image/jpeg' };
+}
+
 const field =
-  'bg-white rounded-2xl px-4 py-3.5 text-neutral-900 font-lato text-base border border-neutral-200';
-const label = 'text-neutral-700 font-lato-bold text-xs mb-1.5 ml-1';
+  'bg-white rounded-2xl px-4 py-3.5 text-neutral-900 font-lato text-base border';
+const borderClass = (isError?: boolean) =>
+  isError ? 'border-red-500' : 'border-neutral-200';
+const label = 'font-lato-bold text-xs mb-1.5 ml-1';
 
 const CURRENCY_OPTIONS: Option[] = [
   { value: 'PKR', label: 'PKR' },
@@ -123,6 +131,7 @@ export function BrandCompanyFormScreen() {
   const [logoRemoved, setLogoRemoved] = useState(false);
   const [dropdown, setDropdown] = useState<DropdownKey | null>(null);
   const [error, setError] = useState('');
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     if (!companyData?.company) return;
@@ -281,48 +290,64 @@ export function BrandCompanyFormScreen() {
   const submitting = createMutation.isPending || updateMutation.isPending;
 
   const effectiveSlug = (slug || slugify(name)).trim();
-  const isFormComplete =
-    Boolean(
-      name.trim() &&
-      number.trim() &&
-      url.trim() &&
-      categoryId &&
-      effectiveSlug &&
-      description.trim() &&
-      cityId &&
-      countryId &&
-      province.trim() &&
-      postalAddress.trim() &&
-      currencytype &&
-      cash.trim() &&
-      fee.trim() &&
-      franchiseFee.trim() &&
-      totalInvestment.trim() &&
-      royaltyFee.trim() &&
-      contactPerson.trim() &&
-      designation.trim() &&
-      emailAddress.trim() &&
-      mobileNumber.trim() &&
-      hasLogo,
-    );
 
-  const canSubmit = isFormComplete && !submitting;
+  const requiredEmpty: Record<string, boolean> = {
+    name: !name.trim(),
+    number: !number.trim(),
+    url: !url.trim(),
+    category: !categoryId,
+    slug: !effectiveSlug,
+    description: !description.trim(),
+    city: !cityId,
+    country: !countryId,
+    province: !province.trim(),
+    postalAddress: !postalAddress.trim(),
+    currencytype: !currencytype,
+    cash: !cash.trim(),
+    fee: !fee.trim(),
+    franchiseFee: !franchiseFee.trim(),
+    totalInvestment: !totalInvestment.trim(),
+    royaltyFee: !royaltyFee.trim(),
+    contactPerson: !contactPerson.trim(),
+    designation: !designation.trim(),
+    emailAddress: !emailAddress.trim(),
+    mobileNumber: !mobileNumber.trim(),
+    logo: !hasLogo,
+  };
+
+  const isFormComplete = !Object.values(requiredEmpty).some(Boolean);
+  const missingCount = Object.values(requiredEmpty).filter(Boolean).length;
+
+  const hasError = (key: string) => showErrors && requiredEmpty[key] === true;
+
+  const renderLabel = (text: string, isError = false) => (
+    <Text className={`${label} ${isError ? 'text-red-500' : 'text-neutral-700'}`}>{text}</Text>
+  );
+
+  const requiredNote = (key: string) =>
+    hasError(key) ? (
+      <Text className="text-red-500 text-xs font-lato mt-1 ml-1">This field is required</Text>
+    ) : null;
 
   const handleSubmit = async () => {
     setError('');
+    setShowErrors(true);
     if (!isFormComplete) {
-      setError('Please fill in all required fields.');
       return;
     }
 
     const finalSlug = effectiveSlug;
 
+    // editcompro replaces the whole company_images set with what is posted, so
+    // send the full desired image set: logo first (image_1), then every
+    // surviving existing gallery image, then newly picked ones. Anything the
+    // user removed in the UI is left out and disappears server-side.
+    const logoUri = logo?.uri || (logoRemoved ? '' : existingLogoUri);
     const newImages: FormImage[] = [];
-    if (logo) {
-      newImages.push(logo);
-    } else if (gallery.length > 0 && existingLogoUri) {
-      newImages.push({ uri: existingLogoUri, name: 'existing_logo.jpg', type: 'image/jpeg' });
+    if (logoUri) {
+      newImages.push(logo ?? toRemoteFormImage(logoUri));
     }
+    existingGalleryUris.forEach((uri) => newImages.push(toRemoteFormImage(uri)));
     newImages.push(...gallery);
 
     const payload = {
@@ -375,16 +400,19 @@ export function BrandCompanyFormScreen() {
   };
 
   const renderField = (key: DropdownKey, placeholder: string) => (
-    <TouchableOpacity
-      className={`${field} flex-row items-center justify-between mb-4`}
-      onPress={() => setDropdown(key)}
-      activeOpacity={0.7}
-    >
-      <Text className={selectedLabel(key) ? 'text-neutral-900' : 'text-neutral-400'}>
-        {selectedLabel(key) || placeholder}
-      </Text>
-      <ChevronDown size={18} color="#8990A8" />
-    </TouchableOpacity>
+    <View className="mb-4">
+      <TouchableOpacity
+        className={`${field} ${borderClass(hasError(key))} flex-row items-center justify-between`}
+        onPress={() => setDropdown(key)}
+        activeOpacity={0.7}
+      >
+        <Text className={selectedLabel(key) ? 'text-neutral-900' : 'text-neutral-400'}>
+          {selectedLabel(key) || placeholder}
+        </Text>
+        <ChevronDown size={18} color="#8990A8" />
+      </TouchableOpacity>
+      {requiredNote(key)}
+    </View>
   );
 
   const textInput = (
@@ -394,19 +422,26 @@ export function BrandCompanyFormScreen() {
     extra?: {
       multiline?: boolean;
       keyboardType?: 'url' | 'phone-pad' | 'default' | 'numeric';
+      errorKey?: string;
     },
-  ) => (
-    <TextInput
-      placeholder={placeholder}
-      placeholderTextColor="#A3ABC4"
-      className={`${field} ${extra?.multiline ? 'min-h-[88px]' : ''} mb-4`}
-      style={extra?.multiline ? { textAlignVertical: 'top' } : undefined}
-      keyboardType={extra?.keyboardType ?? 'default'}
-      multiline={extra?.multiline}
-      value={value}
-      onChangeText={onChange}
-    />
-  );
+  ) => {
+    const isError = extra?.errorKey ? hasError(extra.errorKey) : false;
+    return (
+      <View className="mb-4">
+        <TextInput
+          placeholder={placeholder}
+          placeholderTextColor="#A3ABC4"
+          className={`${field} ${borderClass(isError)} ${extra?.multiline ? 'min-h-[88px]' : ''}`}
+          style={extra?.multiline ? { textAlignVertical: 'top' } : undefined}
+          keyboardType={extra?.keyboardType ?? 'default'}
+          multiline={extra?.multiline}
+          value={value}
+          onChangeText={onChange}
+        />
+        {extra?.errorKey ? requiredNote(extra.errorKey) : null}
+      </View>
+    );
+  };
 
   return (
     <MainLayout
@@ -445,155 +480,187 @@ export function BrandCompanyFormScreen() {
             <View className="px-4 pt-6">
               <Text className={SECTION_TITLE}>Brand info</Text>
 
-              <Text className={label}>Brand name *</Text>
-              {textInput(name, handleNameChange, 'e.g. Acme Franchise')}
+              {renderLabel('Brand name *', hasError('name'))}
+              {textInput(name, handleNameChange, 'e.g. Acme Franchise', { errorKey: 'name' })}
 
               {isEdit ? (
                 <>
-                  <Text className={label}>Brand slogan</Text>
+                  {renderLabel('Brand slogan')}
                   {textInput(brandSlogan, setBrandSlogan, 'Short tagline for the brand')}
                 </>
               ) : null}
 
-              <Text className={label}>Office number *</Text>
-              {textInput(number, setNumber, '+92 300 0000000', { keyboardType: 'phone-pad' })}
+              {renderLabel('Office number *', hasError('number'))}
+              {textInput(number, setNumber, '+92 300 0000000', {
+                keyboardType: 'phone-pad',
+                errorKey: 'number',
+              })}
 
-              <Text className={label}>Website *</Text>
-              {textInput(url, setUrl, 'https://example.com', { keyboardType: 'url' })}
+              {renderLabel('Website *', hasError('url'))}
+              {textInput(url, setUrl, 'https://example.com', {
+                keyboardType: 'url',
+                errorKey: 'url',
+              })}
 
-              <Text className={label}>Category *</Text>
+              {renderLabel('Category *', hasError('category'))}
               {renderField('category', 'Select category')}
 
-              <Text className={label}>Slug *</Text>
-              {textInput(slug, setSlug, 'auto-from-name')}
+              {renderLabel('Slug *', hasError('slug'))}
+              {textInput(slug, setSlug, 'auto-from-name', { errorKey: 'slug' })}
 
-              <Text className={label}>Description *</Text>
+              {renderLabel('Description *', hasError('description'))}
               {textInput(description, setDescription, 'Tell investors what makes this franchise special…', {
                 multiline: true,
+                errorKey: 'description',
               })}
 
               {isEdit ? (
                 <>
-                  <Text className={label}>Company type</Text>
+                  {renderLabel('Company type')}
                   {textInput(typeOfCompany, setTypeOfCompany, 'e.g. Franchise / Chain')}
 
-                  <Text className={label}>Video link (YouTube)</Text>
+                  {renderLabel('Video link (YouTube)')}
                   {textInput(videoLink, setVideoLink, 'YouTube video ID or URL')}
 
                   <Text className={SECTION_TITLE}>About & performance</Text>
 
-                  <Text className={label}>Established year</Text>
+                  {renderLabel('Established year')}
                   {textInput(companyYear, setCompanyYear, 'e.g. 2015', { keyboardType: 'numeric' })}
 
-                  <Text className={label}>Franchising since</Text>
+                  {renderLabel('Franchising since')}
                   {textInput(franchiseYears, setFranchiseYears, 'e.g. 2018', { keyboardType: 'numeric' })}
 
-                  <Text className={label}>Franchise turnover</Text>
+                  {renderLabel('Franchise turnover')}
                   {textInput(franchiseTurnover, setFranchiseTurnover, 'e.g. 12000000', {
                     keyboardType: 'numeric',
                   })}
 
-                  <Text className={label}>Average turnover</Text>
+                  {renderLabel('Average turnover')}
                   {textInput(averageTurnover, setAverageTurnover, 'e.g. 5000000', {
                     keyboardType: 'numeric',
                   })}
 
-                  <Text className={label}>Commission type</Text>
+                  {renderLabel('Commission type')}
                   {textInput(commisionType, setCommisionType, 'e.g. 5% or fixed fee')}
                 </>
               ) : null}
 
               <Text className={SECTION_TITLE}>Location</Text>
 
-              <Text className={label}>City *</Text>
+              {renderLabel('City *', hasError('city'))}
               {renderField('city', 'Select city')}
 
-              <Text className={label}>Country *</Text>
+              {renderLabel('Country *', hasError('country'))}
               {renderField('country', 'Select country')}
 
-              <Text className={label}>Province *</Text>
-              {textInput(province, setProvince, 'e.g. Punjab')}
+              {renderLabel('Province *', hasError('province'))}
+              {textInput(province, setProvince, 'e.g. Punjab', { errorKey: 'province' })}
 
-              <Text className={label}>Postal address *</Text>
-              {textInput(postalAddress, setPostalAddress, 'Street, area, city', { multiline: true })}
+              {renderLabel('Postal address *', hasError('postalAddress'))}
+              {textInput(postalAddress, setPostalAddress, 'Street, area, city', {
+                multiline: true,
+                errorKey: 'postalAddress',
+              })}
 
               <Text className={SECTION_TITLE}>Investment</Text>
 
-              <Text className={label}>Currency *</Text>
+              {renderLabel('Currency *', hasError('currencytype'))}
               {renderField('currencytype', 'Select currency')}
 
-              <Text className={label}>Cash required *</Text>
-              {textInput(cash, setCash, 'e.g. 500000')}
+              {renderLabel('Cash required *', hasError('cash'))}
+              {textInput(cash, setCash, 'e.g. 500000', { errorKey: 'cash' })}
 
-              <Text className={label}>Security fee *</Text>
-              {textInput(fee, setFee, 'e.g. 100000')}
+              {renderLabel('Security fee *', hasError('fee'))}
+              {textInput(fee, setFee, 'e.g. 100000', { errorKey: 'fee' })}
 
-              <Text className={label}>Franchise fee *</Text>
-              {textInput(franchiseFee, setFranchiseFee, 'e.g. 250000')}
+              {renderLabel('Franchise fee *', hasError('franchiseFee'))}
+              {textInput(franchiseFee, setFranchiseFee, 'e.g. 250000', { errorKey: 'franchiseFee' })}
 
-              <Text className={label}>Total investment *</Text>
-              {textInput(totalInvestment, setTotalInvestment, 'e.g. 1500000')}
+              {renderLabel('Total investment *', hasError('totalInvestment'))}
+              {textInput(totalInvestment, setTotalInvestment, 'e.g. 1500000', {
+                errorKey: 'totalInvestment',
+              })}
 
-              <Text className={label}>Royalty fee *</Text>
-              {textInput(royaltyFee, setRoyaltyFee, 'e.g. 5% or 50000')}
+              {renderLabel('Royalty fee *', hasError('royaltyFee'))}
+              {textInput(royaltyFee, setRoyaltyFee, 'e.g. 5% or 50000', { errorKey: 'royaltyFee' })}
 
               <Text className={SECTION_TITLE}>Contact person</Text>
 
-              <Text className={label}>Name *</Text>
-              {textInput(contactPerson, setContactPerson, 'Contact person name')}
+              {renderLabel('Name *', hasError('contactPerson'))}
+              {textInput(contactPerson, setContactPerson, 'Contact person name', {
+                errorKey: 'contactPerson',
+              })}
 
-              <Text className={label}>Designation *</Text>
-              {textInput(designation, setDesignation, 'e.g. Franchise Manager')}
+              {renderLabel('Designation *', hasError('designation'))}
+              {textInput(designation, setDesignation, 'e.g. Franchise Manager', {
+                errorKey: 'designation',
+              })}
 
-              <Text className={label}>Email *</Text>
-              {textInput(emailAddress, setEmailAddress, 'name@example.com')}
+              {renderLabel('Email *', hasError('emailAddress'))}
+              {textInput(emailAddress, setEmailAddress, 'name@example.com', {
+                errorKey: 'emailAddress',
+              })}
 
-              <Text className={label}>Mobile number *</Text>
+              {renderLabel('Mobile number *', hasError('mobileNumber'))}
               {textInput(mobileNumber, setMobileNumber, '+92 300 0000000', {
                 keyboardType: 'phone-pad',
+                errorKey: 'mobileNumber',
               })}
 
               <Text className={SECTION_TITLE}>Images</Text>
 
-              <Text className={label}>Logo *</Text>
-              <TouchableOpacity
-                className={`${field} flex-row items-center gap-3 mb-4`}
-                activeOpacity={0.7}
-                onPress={pickLogo}
-              >
-                {logoDisplayUri ? (
-                  <Image
-                    source={{ uri: logoDisplayUri }}
-                    className="w-12 h-12 rounded-lg"
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View className="w-12 h-12 rounded-lg bg-primary-200 items-center justify-center">
-                    <ImagePlus size={20} color="#5279AC" />
-                  </View>
-                )}
-                <Text className="text-neutral-700 flex-1">
-                  {logoDisplayUri ? 'Change logo' : 'Upload logo (image_1)'}
-                </Text>
-                {logoDisplayUri || logo ? (
-                  <TouchableOpacity
-                    onPress={() => {
-                      setLogo(null);
-                      setLogoRemoved(true);
-                      setExistingLogoUri('');
-                    }}
-                    hitSlop={8}
-                  >
-                    <X size={18} color="#8990A8" />
-                  </TouchableOpacity>
-                ) : null}
-              </TouchableOpacity>
+              {renderLabel('Logo *', hasError('logo'))}
+              <View className="mb-4">
+                <TouchableOpacity
+                  className={`${field} ${borderClass(hasError('logo'))} flex-row items-center gap-3`}
+                  activeOpacity={0.7}
+                  onPress={pickLogo}
+                >
+                  {logoDisplayUri ? (
+                    <Image
+                      source={{ uri: logoDisplayUri }}
+                      className="w-12 h-12 rounded-lg"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View className="w-12 h-12 rounded-lg bg-primary-200 items-center justify-center">
+                      <ImagePlus size={20} color="#5279AC" />
+                    </View>
+                  )}
+                  <Text className="text-neutral-700 flex-1">
+                    {logoDisplayUri ? 'Change logo' : 'Upload logo (image_1)'}
+                  </Text>
+                  {logoDisplayUri || logo ? (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setLogo(null);
+                        setLogoRemoved(true);
+                        setExistingLogoUri('');
+                      }}
+                      hitSlop={8}
+                    >
+                      <X size={18} color="#8990A8" />
+                    </TouchableOpacity>
+                  ) : null}
+                </TouchableOpacity>
+                {requiredNote('logo')}
+              </View>
 
-              <Text className={label}>Gallery (up to 4)</Text>
+              {renderLabel('Gallery (up to 4)')}
               <View className="flex-row flex-wrap gap-2 mb-4">
-                {existingGalleryUris.map((uri) => (
+                {existingGalleryUris.map((uri, index) => (
                   <View key={`existing-${uri}`} className="relative">
                     <Image source={{ uri }} className="w-20 h-20 rounded-xl" resizeMode="cover" />
+                    <TouchableOpacity
+                      className="absolute -top-1.5 -right-1.5 bg-white rounded-full border border-neutral-200 w-6 h-6 items-center justify-center"
+                      onPress={() =>
+                        setExistingGalleryUris((prev) => prev.filter((_, i) => i !== index))
+                      }
+                      hitSlop={6}
+                      accessibilityLabel="Remove image"
+                    >
+                      <X size={12} color="#3F465C" />
+                    </TouchableOpacity>
                   </View>
                 ))}
                 {gallery.map((img, index) => (
@@ -623,20 +690,24 @@ export function BrandCompanyFormScreen() {
                 <Text className="text-red-500 text-sm font-lato mb-3 text-center">{error}</Text>
               ) : null}
 
+              {showErrors && !isFormComplete ? (
+                <Text className="text-red-600 text-sm font-lato-bold mb-3 text-center">
+                  {missingCount} required {missingCount === 1 ? 'field is' : 'fields are'} still
+                  empty
+                </Text>
+              ) : null}
+
               <TouchableOpacity
                 onPress={handleSubmit}
-                disabled={!canSubmit}
-                className={`rounded-2xl py-4 items-center justify-center ${canSubmit ? 'bg-primary-700' : 'bg-neutral-300'
+                disabled={submitting}
+                className={`rounded-2xl py-4 items-center justify-center ${submitting ? 'bg-neutral-400' : 'bg-primary-700'
                   }`}
                 activeOpacity={0.85}
               >
                 {submitting ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
-                  <Text
-                    className={`font-lato-bold text-base ${canSubmit ? 'text-white' : 'text-neutral-500'
-                      }`}
-                  >
+                  <Text className="font-lato-bold text-base text-white">
                     {isEdit ? 'Save Changes' : 'Create Brand'}
                   </Text>
                 )}

@@ -73,36 +73,21 @@ export function useCompanyLeads(coId: string | number | undefined) {
   });
 }
 
-export function useInvestorRequests() {
-  const companiesQuery = useBrandCompanies();
-  const companies = companiesQuery.data?.companies ?? [];
-  const companyIds = companies
-    .map((c) => c.co_id)
-    .filter((id): id is string => typeof id === 'string' && id !== '' && id !== '0');
+export function useUserLeads(enabled = true) {
+  const { user } = useAuth();
+  const userId = user?.id;
 
-  const companyIdsKey = companyIds.join(',');
-
-  const leadsQuery = useQuery({
-    queryKey: ['userpanel', 'leads', 'investor', companyIdsKey],
-    enabled: companiesQuery.isSuccess && companyIds.length > 0,
-    queryFn: async () => {
-      const results = await Promise.all(companyIds.map((id) => userpanel.getCompanyLeads(id)));
-      const investrequests = results.flatMap((r) => r.investrequests ?? []);
-      return { investrequests };
-    },
+  return useQuery({
+    queryKey: ['userpanel', 'leads', 'investor', 'user', userId],
+    enabled: enabled && !!userId,
+    queryFn: () => userpanel.getUserLeads(userId!),
     staleTime: 30 * 1000,
   });
+}
 
-  return {
-    ...leadsQuery,
-    isLoading: companiesQuery.isLoading || leadsQuery.isLoading,
-    isError: companiesQuery.isError || leadsQuery.isError,
-    isFetching: companiesQuery.isFetching || leadsQuery.isFetching,
-    data:
-      companiesQuery.isSuccess && companyIds.length === 0
-        ? { investrequests: [] as InvestorLead[] }
-        : leadsQuery.data,
-  };
+/** @deprecated Use useUserLeads — kept for compatibility; now backed by company-user-leads. */
+export function useInvestorRequests() {
+  return useUserLeads();
 }
 
 export function useFranchiseRequests() {

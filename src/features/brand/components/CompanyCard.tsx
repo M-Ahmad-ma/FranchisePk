@@ -138,22 +138,13 @@ const CompanyCard = ({
       ? `${imageBaseUrl.replace(/\/?$/, "/")}${image.img_name}`
       : null;
 
-  const handleCall = () => {
-    if (!phone) return;
-    onCallPress ? onCallPress(phone) : Linking.openURL(`tel:${phone}`);
-  };
-
-  const handleEmail = () => {
-    if (!email) return;
-    onEmailPress ? onEmailPress(email) : Linking.openURL(`mailto:${email}`);
-  };
 
   return (
     <Pressable
       onPress={() => onPress?.(company)}
       disabled={!onPress}
       accessibilityRole={onPress ? "button" : undefined}
-      className={`overflow-hidden rounded-2xl border border-neutral-300 bg-primary-100 active:bg-light ${className}`}
+      className={`overflow-hidden rounded-2xl border mb-3 border-neutral-300 bg-primary-100 active:bg-light ${className}`}
     >
       {/* Header: logo + name + badges */}
       <View className="flex-row items-center p-4">
@@ -211,14 +202,14 @@ const CompanyCard = ({
       )}
 
       {/* Actions */}
-      {(!!phone || !!email) && (
-        <View className="flex-row gap-3 p-4">
-          {!!phone && <ActionButton label="Call" onPress={handleCall} />}
-          {!!email && (
-            <ActionButton label="Send email" onPress={handleEmail} variant="secondary" />
-          )}
-        </View>
-      )}
+      {/* {(!!phone || !!email) && ( */}
+      {/*   <View className="flex-row gap-3 p-4"> */}
+      {/*     {!!phone && <ActionButton label="Call" onPress={handleCall} />} */}
+      {/*     {!!email && ( */}
+      {/*       <ActionButton label="Send email" onPress={handleEmail} variant="secondary" /> */}
+      {/*     )} */}
+      {/*   </View> */}
+      {/* )} */}
     </Pressable>
   );
 };

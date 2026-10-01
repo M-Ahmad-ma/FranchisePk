@@ -17,8 +17,6 @@ import {
   Eye,
   Plus,
   BriefcaseBusiness,
-  ChevronLeft,
-  ChevronRight,
 } from 'lucide-react-native';
 import { Log } from '../../../shared/utils/Log';
 import { imageUrl } from '../../../shared/api/imageUrl';
@@ -104,7 +102,7 @@ export function BrandDashboardScreen() {
               />
             </View>
             <View className="flex-1">
-              <Text className="text-neutral-500 text-sm font-normal">Welcome back,</Text>
+              <Text className="text-neutral-500 text-sm">Welcome back,</Text>
               <Text className="text-neutral-900 text-xl font-lato-bold">{displayName}</Text>
             </View>
             <View className="bg-primary-200 border border-primary-300 rounded-full px-3 py-1.5">
@@ -218,7 +216,7 @@ export function BrandDashboardScreen() {
                 return (
                   <TouchableOpacity
                     key={String(company.co_id ?? index)}
-                    className={`flex-row relative items-center mb-3 px-4 py-3.5 bg-white rounded-xl`}
+                    className={`flex-row items-center mb-3 px-4 py-3.5 bg-white rounded-xl`}
                     style={{ elevation: 2, shadowColor: '#000' }}
                     activeOpacity={0.6}
                     onPress={() =>
@@ -230,30 +228,28 @@ export function BrandDashboardScreen() {
                     }
                   >
                     <View className="flex-1">
-                      {image && (
-                        <View>
-                          <Image className='w-20 h-20 bg-gray-400 rounded-xl mb-3' source={{ uri: imageUrl(image) }} alt='image' />
-                        </View>
-                      )}
-
-                      <View className=" flex items-center justify-between flex-row">
+                      <View>
+                        <Image className='w-20 h-20 bg-gray-400 rounded-xl mb-3' source={{ uri: imageUrl(image) }} alt='image' />
+                      </View>
+                      <View className="flex items-center justify-between flex-row">
                         <Text className="text-neutral-900 font-lato-bold text-xl" numberOfLines={1}>
                           {name}
                         </Text>
+                        <Text className='text-xs font-normal'>
+                          {number}
+                        </Text>
                       </View>
-                      <Text className='absolute top-5 right-3 text-xs font-normal'>
-                        {number}
-                      </Text>
-
-                      <View className='flex flex-row items-center absolute bottom-1 right-1 font-medium text-xs'>
-                        <Text className='text-xs font-medium'>view leads</Text>
-                        <ChevronRight size={15} />
-                      </View>
+                      {!!detail && (
+                        <Text className="text-sm w-[70%] font-normal mt-3" numberOfLines={2}>
+                          {detail}
+                        </Text>
+                      )}
 
                       {!!email && (
                         <Text className='text-sm mt-4 font-normal'>{email}</Text>
                       )}
                     </View>
+                    {/* <Eye size={16} color="#A3ABC4" /> */}
                   </TouchableOpacity>
                 );
               })}

@@ -11,6 +11,7 @@ import {
   Modal,
   FlatList,
   useWindowDimensions,
+  RefreshControl,
 } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -46,6 +47,8 @@ import { HTMLContentView } from '../../../shared/components/HTMLContentView';
 import * as companyService from '../../../shared/api/companyService';
 import type { City } from '../../../shared/api/types';
 import FinancailStatsCard from '../components/FinancailStatsCard';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 
 function extractVideoId(url: string): string | null {
   try {
@@ -131,7 +134,9 @@ export function CompanyDetailScreen() {
   const { slug } = route.params;
 
 
-  const { data, isLoading, isError } = useCompany(slug);
+  const companyQuery = useCompany(slug);
+  const { data, isLoading, isError } = companyQuery;
+  const { refreshing, onRefresh } = useRefresh(companyQuery);
   const company = data?.company;
 
 
@@ -317,7 +322,10 @@ export function CompanyDetailScreen() {
     return (
       <MainLayout showHeader={false}>
         <View className="flex-1 items-center justify-center bg-light px-6">
-          <Text className="text-neutral-500 text-center">Unable to load company details.</Text>
+          <ErrorRetry
+            message="Unable to load company details."
+            onRetry={onRefresh}
+          />
           <Button title="Go Back" onPress={() => navigation.goBack()} variant="outlined" className="mt-4" />
         </View>
       </MainLayout>
@@ -328,7 +336,17 @@ export function CompanyDetailScreen() {
 
   return (
     <MainLayout showHeader={false}>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
       >
         <View className="relative">
           <Carousel

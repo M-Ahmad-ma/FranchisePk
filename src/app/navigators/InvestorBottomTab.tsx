@@ -64,7 +64,7 @@ export function InvestorBottomTab() {
         name="FranchiseDirectory"
         component={FranchiseStack}
         options={{
-          tabBarLabel: 'Explore',
+          tabBarLabel: 'Brands',
           tabBarOnPress: ({ navigation, defaultHandler }) => {
             navigation.navigate('FranchiseDirectory', { screen: 'FranchiseList' });
           },

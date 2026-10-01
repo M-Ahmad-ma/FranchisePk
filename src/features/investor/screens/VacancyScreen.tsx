@@ -1,12 +1,23 @@
-import { ScrollView, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import {
+  ScrollView,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  RefreshControl,
+} from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { Briefcase, Send } from 'lucide-react-native';
 import { useJobs } from '../../../shared/hooks/useContent';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import UserAvatar from '../../../shared/components/UserAvatar';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 
 export function VacancyScreen() {
-  const { data, isLoading, isError } = useJobs();
+  const jobsQuery = useJobs();
+  const { data, isLoading, isError } = jobsQuery;
+  const { refreshing, onRefresh } = useRefresh(jobsQuery);
 
   return (
     <MainLayout
@@ -15,7 +26,18 @@ export function VacancyScreen() {
         <UserAvatar />
       }
     >
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
+      >
         <View className="px-6 pt-8 pb-2">
           <Text className="text-primary-700 text-sm font-lato-bold tracking-[2px] uppercase mb-3">
             Join Our Team
@@ -54,9 +76,7 @@ export function VacancyScreen() {
           )}
 
           {isError && (
-            <View className="items-center py-16">
-              <Text className="text-neutral-500">Unable to load vacancies.</Text>
-            </View>
+            <ErrorRetry message="Unable to load vacancies." onRetry={onRefresh} />
           )}
 
           {data?.jobs?.map((job) => (

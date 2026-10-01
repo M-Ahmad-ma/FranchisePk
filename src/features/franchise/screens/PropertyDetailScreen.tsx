@@ -1,5 +1,14 @@
 import { useEffect, useRef } from 'react';
-import { ScrollView, Text, View, TouchableOpacity, Image, Animated, StatusBar } from 'react-native';
+import {
+  ScrollView,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  Animated,
+  StatusBar,
+  RefreshControl,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
@@ -11,6 +20,8 @@ import { useState } from 'react';
 import { useProperty } from '../../../shared/hooks/useProperties';
 import { imageUrl } from '../../../shared/api/imageUrl';
 import { Skeleton } from '../../../shared/components/Skeleton';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 
 function useStagger(count: number) {
   const values = useRef([...Array(count)].map(() => new Animated.Value(0))).current;
@@ -37,7 +48,9 @@ export function PropertyDetailScreen() {
     useRoute<RouteProp<PropertiesStackParamList, 'PropertyDetail'>>();
   const { id } = route.params;
 
-  const { data, isLoading, isError } = useProperty(id);
+  const propertyQuery = useProperty(id);
+  const { data, isLoading, isError } = propertyQuery;
+  const { refreshing, onRefresh } = useRefresh(propertyQuery);
   const property = data?.property;
 
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -64,7 +77,10 @@ export function PropertyDetailScreen() {
   if (isError || !property) {
     return (
       <View className="flex-1 items-center justify-center bg-light px-6">
-        <Text className="text-neutral-500 text-center">Unable to load property details.</Text>
+        <ErrorRetry
+          message="Unable to load property details."
+          onRetry={onRefresh}
+        />
         <Button title="Go Back" onPress={() => navigation.goBack()} variant="outlined" className="mt-4" />
       </View>
     );
@@ -78,6 +94,14 @@ export function PropertyDetailScreen() {
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 24 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
       >
         <View className="h-[420px] relative">
           <Image

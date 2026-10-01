@@ -17,7 +17,7 @@ const tabIcons: Record<keyof BrandTabParamList, (color: string, size: number) =>
 
 const tabLabels: Record<keyof BrandTabParamList, string> = {
   BrandDashboard: 'Dashboard',
-  BrandFranchises: 'Franchises',
+  BrandFranchises: 'Brands',
   BrandLeads: 'Leads',
   BrandProfile: 'Profile',
 };

@@ -1,4 +1,4 @@
-import { FlatList, Text, View, TouchableOpacity, Platform } from "react-native"
+import { FlatList, Text, View, TouchableOpacity, Platform, RefreshControl } from "react-native"
 import { MainLayout } from "../../../shared/layouts/MainLayout"
 import { useEffect, useState } from "react"
 import PropertyCard from "../components/PropertiesCard"
@@ -14,6 +14,8 @@ import { Skeleton } from "../../../shared/components/Skeleton"
 import { HousePlus } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import UserAvatar from "../../../shared/components/UserAvatar"
+import { useRefresh } from "../../../shared/hooks/useRefresh"
+import { ErrorRetry } from "../../../shared/components/ErrorRetry"
 
 const PAGE_SIZE = 6
 
@@ -22,7 +24,9 @@ function Properties() {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const navigation = useNavigation<NativeStackNavigationProp<PropertiesStackParamList>>()
   const insets = useSafeAreaInsets()
-  const { data, isLoading, isError } = useProperties()
+  const propertiesQuery = useProperties()
+  const { data, isLoading, isError } = propertiesQuery
+  const { refreshing, onRefresh } = useRefresh(propertiesQuery)
   const [sheetVisible, setSheetVisible] = useState(false)
 
   const properties = data?.property ?? []
@@ -83,6 +87,17 @@ function Properties() {
       <FlatList
         data={visibleProperties}
         keyExtractor={(item) => item.p_id}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setPage(1)
+              onRefresh()
+            }}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
         renderItem={({ item }) => (
           <PropertyCard
             id={Number(item.p_id) || 0}
@@ -115,9 +130,13 @@ function Properties() {
               ))}
             </View>
           ) : isError ? (
-            <View className="items-center py-20">
-              <Text className="text-neutral-500">Unable to load properties.</Text>
-            </View>
+            <ErrorRetry
+              message="Unable to load properties."
+              onRetry={() => {
+                setPage(1)
+                onRefresh()
+              }}
+            />
           ) : (
             <View className="items-center py-20">
               <Text className="text-neutral-500">No properties found.</Text>

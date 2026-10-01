@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Text, View, TouchableOpacity, Image } from 'react-native';
+import {
+  FlatList,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  RefreshControl,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -21,6 +28,8 @@ import {
 } from 'lucide-react-native';
 import type { BrandTabParamList } from '../../../shared/types/navigation';
 import UserAvatar from '../../../shared/components/UserAvatar';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 
 type SelectedCompany = {
   coId: string;
@@ -49,6 +58,9 @@ export function BrandLeadsScreen() {
   const leads = toArray<any>(
     (leadsQuery.data as { investrequests?: any[] } | undefined)?.investrequests,
   );
+
+  const leadsRefresh = useRefresh(leadsQuery);
+  const companiesRefresh = useRefresh(companiesQuery);
 
   const showLeads = selected != null;
 
@@ -96,6 +108,14 @@ export function BrandLeadsScreen() {
           className="flex-1"
           data={leads}
           keyExtractor={(item, i) => String(item.id ?? i)}
+          refreshControl={
+            <RefreshControl
+              refreshing={leadsRefresh.refreshing}
+              onRefresh={leadsRefresh.onRefresh}
+              colors={['#5279AC']}
+              tintColor="#5279AC"
+            />
+          }
           renderItem={({ item }) => (
             <View className="bg-white rounded-2xl border border-neutral-200 mx-4 my-1.5 p-4">
               <View className="flex flex-row items-center justify-between w-full">
@@ -138,9 +158,10 @@ export function BrandLeadsScreen() {
                 ))}
               </View>
             ) : leadsQuery.isError ? (
-              <View className="items-center py-20">
-                <Text className="text-neutral-500">Unable to load leads.</Text>
-              </View>
+              <ErrorRetry
+                message="Unable to load leads."
+                onRetry={leadsRefresh.onRefresh}
+              />
             ) : (
               <View className="items-center py-20 px-8">
                 <Text className="text-neutral-900 text-lg font-lato-bold">No leads here</Text>
@@ -182,6 +203,14 @@ export function BrandLeadsScreen() {
         className="flex-1"
         data={companies}
         keyExtractor={(item) => String(item.co_id)}
+        refreshControl={
+          <RefreshControl
+            refreshing={companiesRefresh.refreshing}
+            onRefresh={companiesRefresh.onRefresh}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
         renderItem={({ item }) => {
           const image = getCompanyCoverImage(item);
           return (
@@ -227,9 +256,10 @@ export function BrandLeadsScreen() {
               ))}
             </View>
           ) : companiesQuery.isError ? (
-            <View className="items-center py-20">
-              <Text className="text-neutral-500">Unable to load brands.</Text>
-            </View>
+            <ErrorRetry
+              message="Unable to load brands."
+              onRetry={companiesRefresh.onRefresh}
+            />
           ) : (
             <View className="items-center py-20 px-8">
               <View className="w-16 h-16 rounded-2xl bg-primary-200 items-center justify-center mb-5">

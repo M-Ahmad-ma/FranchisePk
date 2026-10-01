@@ -1,18 +1,33 @@
-import { ScrollView, Text, View, Image } from 'react-native';
+import { ScrollView, Text, View, Image, RefreshControl } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { usePartners } from '../../../shared/hooks/useContent';
 import { partnerLogoUrl } from '../../../shared/api/imageUrl';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import UserAvatar from '../../../shared/components/UserAvatar';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 
 export function Partners() {
-  const { data, isLoading, isError } = usePartners();
+  const partnersQuery = usePartners();
+  const { data, isLoading, isError } = partnersQuery;
+  const { refreshing, onRefresh } = useRefresh(partnersQuery);
 
   return (
     <MainLayout showHeader={true} headerRight={
       <UserAvatar />
     }>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
+      >
         <View className="px-6 pt-8 pb-2">
           <Text className="text-primary-700 text-sm font-lato-bold tracking-[2px] uppercase mb-3">
             Trusted Partners
@@ -41,11 +56,7 @@ export function Partners() {
         )}
 
         {isError && (
-          <View className="items-center py-20 px-6">
-            <Text className="text-neutral-500 text-center">
-              Unable to load partners. Please try again later.
-            </Text>
-          </View>
+          <ErrorRetry message="Unable to load partners." onRetry={onRefresh} />
         )}
 
         {data && (

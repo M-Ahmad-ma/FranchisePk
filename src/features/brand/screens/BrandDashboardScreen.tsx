@@ -7,6 +7,8 @@ import type { BrandTabParamList } from '../../../shared/types/navigation';
 import UserAvatar from '../../../shared/components/UserAvatar';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import { useBrandDashboard, useBrandCompanies } from '../../../shared/hooks/useBrand';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 import { toArray } from '../../../shared/utils/collections';
 import type { Company } from '../../../shared/api/types';
 import {
@@ -32,6 +34,7 @@ export function BrandDashboardScreen() {
 
   const dashboard = useBrandDashboard();
   const companiesQuery = useBrandCompanies();
+  const { refreshing, onRefresh } = useRefresh(dashboard, companiesQuery);
   const stats = dashboard.data?.stats;
   const companies = toArray<Company>(companiesQuery.data?.companies ?? []).slice(0, 4);
 
@@ -64,15 +67,20 @@ export function BrandDashboardScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={dashboard.isFetching || companiesQuery.isFetching}
-            onRefresh={() => {
-              dashboard.refetch();
-              companiesQuery.refetch();
-            }}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
             tintColor="#5279AC"
           />
         }
       >
+        {(dashboard.isError || companiesQuery.isError) && !isLoading ? (
+          <ErrorRetry
+            message="Unable to load your dashboard."
+            onRetry={onRefresh}
+          />
+        ) : null}
+
         {/* greeting */}
         <View className="px-4 pt-6 pb-4">
           <View className="flex-row items-center gap-4">

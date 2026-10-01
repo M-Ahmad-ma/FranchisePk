@@ -9,6 +9,7 @@ import {
   Modal,
   FlatList,
   Linking,
+  RefreshControl,
 } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import TeamCard from '../../franchise/components/TeamCard';
@@ -21,11 +22,15 @@ import { CheckCircle2, ChevronDown, Phone, Mail, UserRound } from 'lucide-react-
 import * as companyService from '../../../shared/api/companyService';
 import type { TeamEmployee, Company, City } from '../../../shared/api/types';
 import UserAvatar from '../../../shared/components/UserAvatar';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 
 export function TeamScreen() {
   const [sheetVisible, setSheetVisible] = useState(false);
   const [selectedMember, setSelectedMember] = useState<TeamEmployee | null>(null);
-  const { data, isLoading, isError } = useTeam();
+  const teamQuery = useTeam();
+  const { data, isLoading, isError } = teamQuery;
+  const { refreshing, onRefresh } = useRefresh(teamQuery);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -124,7 +129,18 @@ export function TeamScreen() {
         <UserAvatar />
       }
     >
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
+      >
         <View className='flex items-center justify-center py-9'>
           <View className='max-w-[300px]'>
             <Text className='text-center text-4xl font-lato-bold mb-4 text-primary-900'>Meet the Team</Text>
@@ -155,9 +171,10 @@ export function TeamScreen() {
           )}
 
           {isError && (
-            <View className="items-center py-16">
-              <Text className="text-neutral-500">Unable to load team members.</Text>
-            </View>
+            <ErrorRetry
+              message="Unable to load team members."
+              onRetry={onRefresh}
+            />
           )}
 
           {data?.employee?.map((emp: TeamEmployee, i: number) => {

@@ -6,13 +6,14 @@ import {
   FlatList,
   TouchableOpacity,
   useWindowDimensions,
-  Image
+  Image,
+  RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import bgImage from '../../../../assets/bgImage.jpg';
 import MultiStepFilter, { Filters, FilterOption } from '../components/MultiStepFilter';
 import { useHome } from '../../../shared/hooks/useHome';
-import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { InvestorTabParamList } from '../../../shared/types/navigation';
@@ -24,6 +25,8 @@ import { Skeleton } from '../../../shared/components/Skeleton';
 import { Category } from '../../../shared/api/types';
 import { Log } from '../../../shared/utils/Log';
 import UserAvatar from '../../../shared/components/UserAvatar';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 
 function HomeV2() {
   const { width } = useWindowDimensions();
@@ -31,6 +34,7 @@ function HomeV2() {
   const navigation = useNavigation<BottomTabNavigationProp<InvestorTabParamList>>();
 
   const homeQuery = useHome();
+  const { refreshing, onRefresh } = useRefresh(homeQuery);
 
   const categories = homeQuery?.data?.categories || [];
   const featuredCompanies = homeQuery?.data?.featured || []
@@ -94,7 +98,16 @@ function HomeV2() {
       showHeader={true}
       headerRight={<UserAvatar size={44} />}
     >
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
+      >
         <ImageBackground
           source={bgImage}
           resizeMode="cover"
@@ -117,16 +130,22 @@ function HomeV2() {
         </ImageBackground>
 
         <View className="px-2 py-4 bg-transparent">
-          {homeQuery.isLoading ? (
+          {homeQuery.isError && !homeQuery.isLoading ? (
+            <ErrorRetry
+              message="Unable to load home data."
+              onRetry={onRefresh}
+            />
+          ) : homeQuery.isLoading ? (
             <View className="flex-row flex-wrap">
               {Array.from({ length: numColumns * 2 }).map((_, i) => (
                 <View
                   key={i}
-                  className="p-3 m-1 border border-neutral-200 rounded-lg"
-                  style={{ width: `${100 / numColumns}%` }}
+                  className="w-1/2 p-2"        // outer wrapper takes 50%, padding gives the "gap"
                 >
-                  <Skeleton className="w-full h-20 rounded-xl mb-2" />
-                  <Skeleton className="w-3/4 h-4 mx-auto" />
+                  <View className="p-3 border border-neutral-200 rounded-lg">
+                    <Skeleton className="w-full h-20 rounded-xl mb-2" />
+                    <Skeleton className="w-3/4 h-4 mx-auto" />
+                  </View>
                 </View>
               ))}
             </View>

@@ -10,12 +10,16 @@ import type {
 } from '../../../shared/types/navigation';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import { useBrandCompanies } from '../../../shared/hooks/useBrand';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 import { toArray } from '../../../shared/utils/collections';
 import { getCompanyCoverImage } from '../../../shared/utils/franchise';
 import type { Company } from '../../../shared/api/types';
 import { ChevronRight, Plus, Store, Pencil, User } from 'lucide-react-native';
 import { Log } from '../../../shared/utils/Log';
 import UserAvatar from '../../../shared/components/UserAvatar';
+import { MinimalCard } from '../components/MinimalCard';
+import CompanyCard from '../components/CompanyCard';
 
 type Navigation = CompositeNavigationProp<
   NativeStackNavigationProp<BrandFranchisesStackParamList>,
@@ -25,6 +29,7 @@ type Navigation = CompositeNavigationProp<
 export function BrandCompaniesListScreen() {
   const navigation = useNavigation<Navigation>();
   const query = useBrandCompanies();
+  const { refreshing, onRefresh } = useRefresh(query);
   const companies = toArray<Company>(query.data?.companies ?? query.data);
 
   const openCompanyLeads = (company: Company) => {
@@ -68,24 +73,16 @@ export function BrandCompaniesListScreen() {
         keyExtractor={(item) => String(item.co_id)}
         refreshControl={
           <RefreshControl
-            refreshing={query.isFetching}
-            onRefresh={query.refetch}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
             tintColor="#5279AC"
           />
         }
         renderItem={({ item }) => (
-          <MinimalCard
+          <CompanyCard
             key={item.co_id}
-            name={item.co_name}
-            website_url={item.co_website_url}
-            co_office_number={item.co_office_number}
-            con_mobilenumber={item.con_mobilenumber}
-            con_email={item.con_email}
-            imageUrl={getCompanyCoverImage(item)}
-            onPress={() => openCompanyLeads(item)}
-            onEdit={() =>
-              navigation.navigate('BrandCompanyForm', { id: String(item.co_id) })
-            }
+            company={item.company_poster}
           />
         )}
         ListEmptyComponent={
@@ -102,9 +99,10 @@ export function BrandCompaniesListScreen() {
               ))}
             </View>
           ) : query.isError ? (
-            <View className="items-center py-20">
-              <Text className="text-neutral-500">Unable to load your brands.</Text>
-            </View>
+            <ErrorRetry
+              message="Unable to load your brands."
+              onRetry={onRefresh}
+            />
           ) : (
             <View className="items-center py-20 px-8">
               <View className="w-16 h-16 rounded-2xl bg-primary-200 items-center justify-center mb-5">
@@ -133,65 +131,65 @@ export function BrandCompaniesListScreen() {
     </MainLayout>
   );
 }
+//
+// type MinimalCardProps = {
+//   name?: string;
+//   imageUrl?: { uri: string };
+//   onPress?: () => void;
+//   onEdit?: () => void;
+//   website_url?: string;
+//   co_office_number?: string;
+// };
 
-type MinimalCardProps = {
-  name?: string;
-  imageUrl?: { uri: string };
-  onPress?: () => void;
-  onEdit?: () => void;
-  website_url?: string;
-  co_office_number?: string;
-};
-
-function MinimalCard({
-  name,
-  imageUrl,
-  onPress,
-  onEdit,
-  con_email,
-  co_office_number,
-  con_mobilenumber
-}: MinimalCardProps) {
-  return (
-    <View className="flex-row mb-2 items-center gap-3 px-5 py-4 bg-white rounded-xl border border-gray-100/70">
-      <TouchableOpacity
-        className="flex-row flex-1 min-w-0 items-center gap-5"
-        onPress={onPress}
-        activeOpacity={0.7}
-      >
-        {imageUrl && (
-          <View className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
-            <Image source={imageUrl} className="w-full h-full" resizeMode="cover" />
-          </View>
-        )}
-
-        <View className="flex-1 min-w-0">
-          <View className="flex flex-row items-center justify-between">
-            <Text className="text-sm font-semibold text-near-black" numberOfLines={1}>
-              {name || 'Unnamed'}
-            </Text>
-
-            <Text className="text-[12px] font-normal text-gray-600">
-              {con_mobilenumber}
-            </Text>
-          </View>
-          <Text className="text-sm font-normal text-gray-600">
-            {con_email || co_office_number || 'no website'}
-          </Text>
-        </View>
-
-        <ChevronRight size={16} color="#A3ABC4" />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        className="w-9 h-9 rounded-full bg-primary-200 items-center justify-center"
-        activeOpacity={0.7}
-        onPress={onEdit}
-        hitSlop={8}
-        accessibilityLabel="Edit brand"
-      >
-        <Pencil size={15} color="#386092" />
-      </TouchableOpacity>
-    </View>
-  );
-}
+// function MinimalCard({
+//   name,
+//   imageUrl,
+//   onPress,
+//   onEdit,
+//   con_email,
+//   co_office_number,
+//   con_mobilenumber
+// }: MinimalCardProps) {
+//   return (
+//     <View className="flex-row mb-2 items-center gap-3 px-5 py-4 bg-white rounded-xl border border-gray-100/70">
+//       <TouchableOpacity
+//         className="flex-row flex-1 min-w-0 items-center gap-5"
+//         onPress={onPress}
+//         activeOpacity={0.7}
+//       >
+//         {imageUrl && (
+//           <View className="w-14 h-14 rounded-lg overflow-hidden bg-gray-50">
+//             <Image source={imageUrl} className="w-full h-full" resizeMode="cover" />
+//           </View>
+//         )}
+//
+//         <View className="flex-1 min-w-0">
+//           <View className="flex flex-row items-center justify-between">
+//             <Text className="text-sm font-semibold text-near-black" numberOfLines={1}>
+//               {name || 'Unnamed'}
+//             </Text>
+//
+//             <Text className="text-[12px] font-normal text-gray-600">
+//               {con_mobilenumber}
+//             </Text>
+//           </View>
+//           <Text className="text-sm font-normal text-gray-600">
+//             {con_email || co_office_number || 'no website'}
+//           </Text>
+//         </View>
+//
+//         <ChevronRight size={16} color="#A3ABC4" />
+//       </TouchableOpacity>
+//
+//       <TouchableOpacity
+//         className="w-9 h-9 rounded-full bg-primary-200 items-center justify-center"
+//         activeOpacity={0.7}
+//         onPress={onEdit}
+//         hitSlop={8}
+//         accessibilityLabel="Edit brand"
+//       >
+//         <Pencil size={15} color="#386092" />
+//       </TouchableOpacity>
+//     </View>
+//   );
+// }

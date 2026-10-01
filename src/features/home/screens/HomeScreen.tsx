@@ -1,4 +1,11 @@
-import { ScrollView, Text, View, Dimensions, TouchableOpacity } from 'react-native';
+import {
+  ScrollView,
+  Text,
+  View,
+  Dimensions,
+  TouchableOpacity,
+  RefreshControl,
+} from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { useState } from 'react';
 import Carousel from '../components/Carousal';
@@ -20,6 +27,8 @@ import { INTERNATIONAL_SLUG } from '../../../shared/utils/franchise';
 import QuickAction from '../../franchise/components/QuickAction';
 import Search from '../../../shared/components/Search';
 import { quickActions } from '../../../shared/utils/Array';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 
 export function HomeScreen() {
 
@@ -31,6 +40,7 @@ export function HomeScreen() {
 
   const homeQuery = useHome();
   const intlQuery = useInternationalCompanies();
+  const { refreshing, onRefresh } = useRefresh(homeQuery, intlQuery);
 
   const featuredCompanies = homeQuery.data?.featured
     ? Object.values(homeQuery.data.featured)
@@ -63,7 +73,18 @@ export function HomeScreen() {
 
   return (
     <MainLayout>
-      <ScrollView className="flex-1 bg-light" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1 bg-light"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
+      >
         <View>
           <View className='relative'>
             <Carousel
@@ -91,6 +112,13 @@ export function HomeScreen() {
               <Search className='w-[80%] absolute -bottom-8' value={query} onChangeText={setQuery} onSearch={handleSearch} />
             </View>
           </View>
+
+          {(homeQuery.isError || intlQuery.isError) && !homeQuery.isLoading ? (
+            <ErrorRetry
+              message="Unable to load home data."
+              onRetry={onRefresh}
+            />
+          ) : null}
 
           <ChipList items={categories}
             onSelect={(item) => navigation.navigate("FranchiseDirectory", {

@@ -1,4 +1,10 @@
-import { FlatList, Text, View, useWindowDimensions } from 'react-native';
+import {
+  FlatList,
+  Text,
+  View,
+  useWindowDimensions,
+  RefreshControl,
+} from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -17,6 +23,8 @@ import {
   ALL_SECTORS,
 } from '../../../shared/utils/franchise';
 import { Log } from '../../../shared/utils/Log';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 import UserAvatar from '../../../shared/components/UserAvatar';
 
 const PAGE_SIZE = 8;
@@ -42,6 +50,7 @@ export function FranchiseListScreen() {
   const { data, isLoading, isError } = hasAdvancedFilter
     ? filterQuery
     : directoryQuery;
+  const { refreshing, onRefresh } = useRefresh(directoryQuery, filterQuery);
 
   useEffect(() => {
     if (!hasAdvancedFilter && filter && filter !== selected) {
@@ -95,6 +104,17 @@ export function FranchiseListScreen() {
         data={visibleCompanies}
         keyExtractor={(item) => item.co_id}
         numColumns={NUM_COLUMNS}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setPage(1);
+              onRefresh();
+            }}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
         columnWrapperStyle={{ gap: CARD_GAP }}
         renderItem={({ item }) => (
           <View style={{ width: cardWidth }}>
@@ -136,9 +156,13 @@ export function FranchiseListScreen() {
               ))}
             </View>
           ) : isError ? (
-            <View className="items-center py-20">
-              <Text className="text-neutral-500">Unable to load companies.</Text>
-            </View>
+            <ErrorRetry
+              message="Unable to load companies."
+              onRetry={() => {
+                setPage(1);
+                onRefresh();
+              }}
+            />
           ) : (
             <View className="items-center py-20">
               <Text className="text-neutral-500">No companies found.</Text>

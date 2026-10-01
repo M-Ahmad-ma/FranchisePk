@@ -157,9 +157,9 @@ export function BrandCompanyFormScreen() {
     setContactPerson(
       str(
         c.contact_person ??
-          contact?.contact_person ??
-          contact?.con_p_name ??
-          c.con_p_name,
+        contact?.contact_person ??
+        contact?.con_p_name ??
+        c.con_p_name,
       ),
     );
     setDesignation(
@@ -284,26 +284,26 @@ export function BrandCompanyFormScreen() {
   const isFormComplete =
     Boolean(
       name.trim() &&
-        number.trim() &&
-        url.trim() &&
-        categoryId &&
-        effectiveSlug &&
-        description.trim() &&
-        cityId &&
-        countryId &&
-        province.trim() &&
-        postalAddress.trim() &&
-        currencytype &&
-        cash.trim() &&
-        fee.trim() &&
-        franchiseFee.trim() &&
-        totalInvestment.trim() &&
-        royaltyFee.trim() &&
-        contactPerson.trim() &&
-        designation.trim() &&
-        emailAddress.trim() &&
-        mobileNumber.trim() &&
-        hasLogo,
+      number.trim() &&
+      url.trim() &&
+      categoryId &&
+      effectiveSlug &&
+      description.trim() &&
+      cityId &&
+      countryId &&
+      province.trim() &&
+      postalAddress.trim() &&
+      currencytype &&
+      cash.trim() &&
+      fee.trim() &&
+      franchiseFee.trim() &&
+      totalInvestment.trim() &&
+      royaltyFee.trim() &&
+      contactPerson.trim() &&
+      designation.trim() &&
+      emailAddress.trim() &&
+      mobileNumber.trim() &&
+      hasLogo,
     );
 
   const canSubmit = isFormComplete && !submitting;
@@ -345,15 +345,15 @@ export function BrandCompanyFormScreen() {
       currencytype,
       ...(isEdit
         ? {
-            brand_slogan: brandSlogan.trim(),
-            company_year: companyYear.trim(),
-            franchise_years: franchiseYears.trim(),
-            franchise_turnover: franchiseTurnover.trim(),
-            average_turnover: averageTurnover.trim(),
-            commision_type: commisionType.trim(),
-            type_of_company: typeOfCompany.trim(),
-            video_link: videoLink.trim(),
-          }
+          brand_slogan: brandSlogan.trim(),
+          company_year: companyYear.trim(),
+          franchise_years: franchiseYears.trim(),
+          franchise_turnover: franchiseTurnover.trim(),
+          average_turnover: averageTurnover.trim(),
+          commision_type: commisionType.trim(),
+          type_of_company: typeOfCompany.trim(),
+          video_link: videoLink.trim(),
+        }
         : {}),
       contact_person: contactPerson.trim(),
       designation: designation.trim(),
@@ -626,18 +626,16 @@ export function BrandCompanyFormScreen() {
               <TouchableOpacity
                 onPress={handleSubmit}
                 disabled={!canSubmit}
-                className={`rounded-2xl py-4 items-center justify-center ${
-                  canSubmit ? 'bg-primary-700' : 'bg-neutral-300'
-                }`}
+                className={`rounded-2xl py-4 items-center justify-center ${canSubmit ? 'bg-primary-700' : 'bg-neutral-300'
+                  }`}
                 activeOpacity={0.85}
               >
                 {submitting ? (
                   <ActivityIndicator color="#FFFFFF" />
                 ) : (
                   <Text
-                    className={`font-lato-bold text-base ${
-                      canSubmit ? 'text-white' : 'text-neutral-500'
-                    }`}
+                    className={`font-lato-bold text-base ${canSubmit ? 'text-white' : 'text-neutral-500'
+                      }`}
                   >
                     {isEdit ? 'Save Changes' : 'Create Brand'}
                   </Text>

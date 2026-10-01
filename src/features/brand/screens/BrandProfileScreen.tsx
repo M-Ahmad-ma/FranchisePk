@@ -5,6 +5,7 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
 import { HelpCircle, LogOut, Save, Camera, Eye, EyeOff } from 'lucide-react-native';
@@ -19,6 +20,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../../shared/types/navigation';
 import { CommonActions } from '@react-navigation/native';
+import { useRefresh } from '../../../shared/hooks/useRefresh';
+import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 
 const field =
   'bg-white rounded-2xl px-4 py-3.5 text-neutral-900 font-lato text-base border border-neutral-200';
@@ -29,6 +32,7 @@ export function BrandProfileScreen() {
   const profileQuery = useBrandProfile();
   const updateMutation = useUpdateBrandProfile();
 
+  const { refreshing, onRefresh } = useRefresh(profileQuery);
   const profile = profileQuery.data;
 
   const [firstName, setFirstName] = useState('');
@@ -112,7 +116,19 @@ export function BrandProfileScreen() {
         <UserAvatar />
       }
     >
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#5279AC']}
+            tintColor="#5279AC"
+          />
+        }
+      >
         <View className="items-center pt-8 pb-2 px-4">
           <TouchableOpacity onPress={handlePickImage} activeOpacity={0.7}>
             <View
@@ -144,6 +160,12 @@ export function BrandProfileScreen() {
           </View>
         ) : (
           <View className="px-4 pt-4">
+            {profileQuery.isError && (
+              <ErrorRetry
+                message="Unable to load your profile."
+                onRetry={onRefresh}
+              />
+            )}
             <Text className="text-primary-700 text-sm font-lato-bold tracking-[2px] uppercase mb-3">
               Edit Profile
             </Text>

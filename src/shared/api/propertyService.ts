@@ -30,9 +30,7 @@ export async function addProperty(fields: AddPropertyFields, image?: AddProperty
       type: image.type,
     } as any);
   }
-  const res = await apiClient.post<ApiResponse<boolean>>('/properties/add', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const res = await apiClient.post<ApiResponse<boolean>>('/properties/add', formData);
   return res.data.data;
 }
 

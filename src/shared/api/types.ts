@@ -326,12 +326,43 @@ export interface FormImage {
   type: string;
 }
 
+/** Image slots on POST /userpanel/companies/create. */
+export type CreateImageSlot = 'image_1' | 'image_2' | 'image_3' | 'image_4' | 'image_5';
+
 /**
- * Payload for POST /userpanel/companies/create.
- * Keys match CodeIgniter `$this->input->post(...)` in company_add / company_contact_person.
+ * Image slots on POST /userpanel/companies/update/:id.
+ *
+ * Deliberately excludes `slider_image_1` / `slider_image_2`: the server reads
+ * `id4` for `slider_image_1` as well as for `image_4`, so posting both in one
+ * request writes the slider into image_4's row. No slider UI ships today.
+ */
+export type UpdateImageSlot = 'image_1' | 'image_2' | 'image_3' | 'image_4';
+
+/** Any slot either endpoint accepts. Create has one more than update. */
+export type CompanyImageSlot = CreateImageSlot | UpdateImageSlot;
+
+export interface SlotValue {
+  /** A newly picked local file, posted to replace this slot. */
+  file?: FormImage | null;
+  /**
+   * `img_id` of the row this slot already owns, from the edit endpoint.
+   * Empty => the server INSERTS a new images row instead of updating, which
+   * is how duplicate rows accumulated on every save. Required for update.
+   */
+  id?: string | number | null;
+}
+
+/**
+ * Payload for both company write endpoints.
+ *
+ * Create and update do NOT share field names — see `CreateCompanyFields` and
+ * `UpdateCompanyFields` in the service for the per-endpoint shape.
  */
 export interface CompanyPayload {
-  huid?: string | number;
+  /** Logged-in brand user id — create endpoint reads `huid`. */
+  huid?: string;
+  /** Logged-in brand user id — update (edit) endpoint reads `uid`. */
+  uid?: string;
   name?: string;
   number?: string;
   url?: string;
@@ -339,29 +370,47 @@ export interface CompanyPayload {
   fee?: string;
   franchise_fee?: string;
   total_investment?: string;
+  /**
+   * The two endpoints read different spellings: create reads `royality_fee`,
+   * update reads `royalty_fee`. Both are sent until the backend is
+   * confirmed; an unread POST key is ignored, so this is safe.
+   */
+  royalty_fee?: string;
   royality_fee?: string;
   postal_address?: string;
+  /** CREATE only — the update model reads `co_description`. */
   description?: string;
+  /** UPDATE only. Server runs escape_str on every save, so never pre-escape. */
+  co_description?: string;
   category?: string;
   city?: string;
   country?: string;
+  /** Same one-key-ambiguity as royalty_fee; see the note there. */
+  category_id?: string;
+  city_id?: string;
+  country_id?: string;
   province?: string;
+  /** CREATE only — update regenerates the slug from `name`. */
   slug?: string;
   currencytype?: string;
   contact_person?: string;
+  /** CREATE only — the update model's designation line is commented out. */
   designation?: string;
   email_address?: string;
   mobile_number?: string;
-  /** Optional — only sent on update (`editpro`); `company_add` ignores them. */
+  /** Edit-only fields the `editpro` model reads. Ignored on create. */
   brand_slogan?: string;
   company_year?: string;
   franchise_years?: string;
   franchise_turnover?: string;
   average_turnover?: string;
   commision_type?: string;
-  type_of_company?: string;
+  /** UPDATE only. The model reads this as `feature`; "1" marks it featured. */
+  feature?: string;
   video_link?: string;
-  images?: FormImage[];
+  home_page?: string;
+  /** Targeted per-slot payloads, keyed by image slot. */
+  images?: Partial<Record<CompanyImageSlot, SlotValue>>;
   [key: string]: any;
 }
 

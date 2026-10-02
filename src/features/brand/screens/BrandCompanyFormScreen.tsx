@@ -25,7 +25,12 @@ import {
 } from '../../../shared/hooks/useBrand';
 import { useAuth } from '../../../shared/auth/AuthContext';
 import { launchImageLibrary, type Asset } from 'react-native-image-picker';
-import type { FormImage } from '../../../shared/api/types';
+import type {
+  CompanyPayload,
+  CreateImageSlot,
+  FormImage,
+  UpdateImageSlot,
+} from '../../../shared/api/types';
 import { imageUrl } from '../../../shared/api/imageUrl';
 import { ChevronDown, ArrowLeft, ImagePlus, X } from 'lucide-react-native';
 import UserAvatar from '../../../shared/components/UserAvatar';
@@ -61,10 +66,19 @@ function str(v: unknown): string {
   return String(v);
 }
 
-/** Wrap an already-hosted image URL so it can be posted back as part of the image set. */
-function toRemoteFormImage(uri: string): FormImage {
-  const name = decodeURIComponent(uri.split('/').pop() || `gallery_${Date.now()}.jpg`);
-  return { uri, name, type: 'image/jpeg' };
+/**
+ * An images row the server already owns. `imgId` is the only handle that lets
+ * an update target the row in place — without it the server has no choice but
+ * to INSERT a duplicate on every save. Depends on the edit endpoint returning
+ * `img_id`; if it does not, `toExistingImage` returns null and no ids are sent.
+ */
+type ExistingImage = { imgId: string; uri: string };
+
+function toExistingImage(img: any): ExistingImage | null {
+  const imgId = img?.img_id;
+  const uri = imageUrl(img?.img_name && img.img_name !== '0' ? img.img_name : undefined);
+  if (imgId == null || imgId === '' || !uri) return null;
+  return { imgId: String(imgId), uri };
 }
 
 const field =
@@ -79,6 +93,25 @@ const CURRENCY_OPTIONS: Option[] = [
   { value: 'EUR', label: 'EUR' },
   { value: 'GBP', label: 'GBP' },
   { value: 'AED', label: 'AED' },
+];
+
+/**
+ * Gallery capacity differs by endpoint. Create takes image_2..image_5 (four).
+ * Update only exposes image_2..image_4, because the backend's fifth slot is
+ * named `slider_image_1` and reads `id4` — the same id as image_4 — so posting
+ * it would overwrite image_4's row. A company that already has four gallery
+ * images keeps its fourth: we simply never send an id for it.
+ */
+const GALLERY_SLOTS_CREATE = 4;
+const GALLERY_SLOTS_UPDATE = 3;
+
+/** Create slot order — index 0 is the logo, the rest are gallery. */
+const CREATE_SLOT_ORDER: CreateImageSlot[] = [
+  'image_1',
+  'image_2',
+  'image_3',
+  'image_4',
+  'image_5',
 ];
 
 const SECTION_TITLE = 'text-primary-700 text-sm font-lato-bold tracking-[2px] uppercase mt-2 mb-3';
@@ -126,8 +159,8 @@ export function BrandCompanyFormScreen() {
   const [mobileNumber, setMobileNumber] = useState('');
   const [logo, setLogo] = useState<FormImage | null>(null);
   const [gallery, setGallery] = useState<FormImage[]>([]);
-  const [existingLogoUri, setExistingLogoUri] = useState('');
-  const [existingGalleryUris, setExistingGalleryUris] = useState<string[]>([]);
+  const [existingLogo, setExistingLogo] = useState<ExistingImage | null>(null);
+  const [existingGallery, setExistingGallery] = useState<ExistingImage[]>([]);
   const [logoRemoved, setLogoRemoved] = useState(false);
   const [dropdown, setDropdown] = useState<DropdownKey | null>(null);
   const [error, setError] = useState('');
@@ -179,22 +212,29 @@ export function BrandCompanyFormScreen() {
       str(c.mobile_number ?? contact?.mobile_number ?? contact?.con_mobilenumber ?? c.con_mobilenumber),
     );
 
-    const images = Array.isArray(c.company_images) ? c.company_images : [];
+    const images: any[] = Array.isArray(c.company_images) ? c.company_images : [];
     const logoImg = images.find((img: any) => String(img?.img_type) === '1');
-    const posterRaw = str(c.company_poster);
-    const logoUri =
-      imageUrl(logoImg?.img_name && logoImg.img_name !== '0' ? logoImg.img_name : undefined) ??
-      (posterRaw && posterRaw !== '0' ? imageUrl(posterRaw) : undefined) ??
-      '';
-    setExistingLogoUri(logoUri);
+    const logoRow = toExistingImage(logoImg);
+    if (logoRow) {
+      setExistingLogo(logoRow);
+    } else {
+      // No usable logo row to target. The poster is display-only: it is a
+      // different file, so attaching it to some other row's img_id would
+      // overwrite that row's image on the next save. imgId '' means "nothing
+      // to target" — a replacement logo has to INSERT, which is honest.
+      const posterRaw = str(c.company_poster);
+      const posterUri = posterRaw ? imageUrl(posterRaw) : undefined;
+      setExistingLogo(posterUri ? { imgId: '', uri: posterUri } : null);
+    }
     setLogo(null);
     setLogoRemoved(false);
 
-    const galleryUris: string[] = images
-      .filter((img: any) => String(img?.img_type) !== '1')
-      .map((img: any) => imageUrl(img?.img_name && img.img_name !== '0' ? img.img_name : undefined))
-      .filter((u: string | undefined): u is string => Boolean(u));
-    setExistingGalleryUris(galleryUris);
+    setExistingGallery(
+      images
+        .filter((img: any) => String(img?.img_type) !== '1')
+        .map(toExistingImage)
+        .filter((img): img is ExistingImage => img !== null),
+    );
     setGallery([]);
   }, [companyData]);
 
@@ -267,9 +307,11 @@ export function BrandCompanyFormScreen() {
     });
   };
 
+  const gallerySlots = isEdit ? GALLERY_SLOTS_UPDATE : GALLERY_SLOTS_CREATE;
+  const galleryTotal = existingGallery.length + gallery.length;
+
   const pickGallery = () => {
-    const existingCount = existingGalleryUris.length;
-    const remaining = 4 - existingCount - gallery.length;
+    const remaining = gallerySlots - galleryTotal;
     if (remaining <= 0) return;
     launchImageLibrary(
       { mediaType: 'photo', quality: 0.8, selectionLimit: remaining },
@@ -284,7 +326,7 @@ export function BrandCompanyFormScreen() {
     );
   };
 
-  const logoDisplayUri = logo?.uri || (logoRemoved ? '' : existingLogoUri);
+  const logoDisplayUri = logo?.uri || (logoRemoved ? '' : (existingLogo?.uri ?? ''));
   const hasLogo = Boolean(logoDisplayUri);
 
   const submitting = createMutation.isPending || updateMutation.isPending;
@@ -309,7 +351,10 @@ export function BrandCompanyFormScreen() {
     totalInvestment: !totalInvestment.trim(),
     royaltyFee: !royaltyFee.trim(),
     contactPerson: !contactPerson.trim(),
-    designation: !designation.trim(),
+    // The update model's designation line is commented out server-side, so
+    // requiring it on edit would block a save over a value that can never be
+    // stored. It is still mandatory on create, where it is read.
+    designation: !isEdit && !designation.trim(),
     emailAddress: !emailAddress.trim(),
     mobileNumber: !mobileNumber.trim(),
     logo: !hasLogo,
@@ -338,20 +383,38 @@ export function BrandCompanyFormScreen() {
 
     const finalSlug = effectiveSlug;
 
-    // editcompro replaces the whole company_images set with what is posted, so
-    // send the full desired image set: logo first (image_1), then every
-    // surviving existing gallery image, then newly picked ones. Anything the
-    // user removed in the UI is left out and disappears server-side.
-    const logoUri = logo?.uri || (logoRemoved ? '' : existingLogoUri);
-    const newImages: FormImage[] = [];
-    if (logoUri) {
-      newImages.push(logo ?? toRemoteFormImage(logoUri));
-    }
-    existingGalleryUris.forEach((uri) => newImages.push(toRemoteFormImage(uri)));
-    newImages.push(...gallery);
+    const uId = user?.id != null ? String(user.id) : undefined;
 
-    const payload = {
-      huid: user?.id != null ? String(user.id) : undefined,
+    // Image slots, not a flat array. Each slot carries the img_id of the row it
+    // already owns so the server updates that row instead of inserting a new
+    // one — omitting the id is what stacked duplicate rows on every save.
+    // Slots with neither an id nor a file send the id alone, which reads as
+    // "unchanged" server-side.
+    const images: NonNullable<CompanyPayload['images']> = {};
+    if (isEdit) {
+      // image_1 — logo. A removed logo keeps its id so the server can clear
+      // the row; it is never dropped from the map.
+      images.image_1 = { id: existingLogo?.imgId ?? '', file: logo };
+      // image_2..image_4 — gallery. New picks fill the first slot that has no
+      // existing row, so adding an image never displaces one already there.
+      const slots: UpdateImageSlot[] = ['image_2', 'image_3', 'image_4'];
+      let pickIndex = 0;
+      for (let i = 0; i < slots.length; i += 1) {
+        const owned = existingGallery[i];
+        const file = owned ? null : (gallery[pickIndex++] ?? null);
+        images[slots[i]] = { id: owned?.imgId ?? '', file };
+      }
+    } else {
+      if (logo) images.image_1 = { file: logo };
+      CREATE_SLOT_ORDER.slice(1).forEach((slot, i) => {
+        const file = gallery[i];
+        if (file) images[slot] = { file };
+      });
+    }
+
+    const payload: CompanyPayload = {
+      // create reads `huid`, update reads `uid`
+      ...(isEdit ? { uid: uId } : { huid: uId }),
       name: name.trim(),
       number: number.trim(),
       url: url.trim(),
@@ -359,42 +422,70 @@ export function BrandCompanyFormScreen() {
       fee: fee.trim(),
       franchise_fee: franchiseFee.trim(),
       total_investment: totalInvestment.trim(),
+      // create reads `royality_fee`, update reads `royalty_fee`; send both
+      // until the backend is confirmed. An unread key is ignored.
+      royalty_fee: royaltyFee.trim(),
       royality_fee: royaltyFee.trim(),
       postal_address: postalAddress.trim(),
-      description: description.trim(),
+      // Dropdown keys are ambiguous across the two docs (category/city/country
+      // vs category_id/city_id/country_id). Send both spellings; the endpoint
+      // reads one and ignores the other. Remove the loser once verified.
       category: categoryId,
       city: cityId,
       country: countryId,
+      category_id: categoryId,
+      city_id: cityId,
+      country_id: countryId,
       province: province.trim(),
-      slug: finalSlug,
       currencytype,
-      ...(isEdit
-        ? {
-          brand_slogan: brandSlogan.trim(),
-          company_year: companyYear.trim(),
-          franchise_years: franchiseYears.trim(),
-          franchise_turnover: franchiseTurnover.trim(),
-          average_turnover: averageTurnover.trim(),
-          commision_type: commisionType.trim(),
-          type_of_company: typeOfCompany.trim(),
-          video_link: videoLink.trim(),
-        }
-        : {}),
       contact_person: contactPerson.trim(),
-      designation: designation.trim(),
       email_address: emailAddress.trim(),
       mobile_number: mobileNumber.trim(),
-      images: newImages,
+      images,
+      // Per-endpoint field names. These four renames are the difference
+      // between a save that lands and one that silently writes nulls.
+      ...(isEdit
+        ? {
+            co_description: description.trim(),
+            feature: typeOfCompany.trim(),
+            // slug is regenerated server-side from `name`; sending it is a no-op
+            brand_slogan: brandSlogan.trim(),
+            company_year: companyYear.trim(),
+            franchise_years: franchiseYears.trim(),
+            franchise_turnover: franchiseTurnover.trim(),
+            average_turnover: averageTurnover.trim(),
+            commision_type: commisionType.trim(),
+            video_link: videoLink.trim(),
+            // designation is deliberately absent: the update model ignores it
+          }
+        : {
+            description: description.trim(),
+            slug: finalSlug,
+            designation: designation.trim(),
+          }),
     };
 
     try {
+      if (__DEV__) {
+        const imagePreview = Object.entries(payload.images ?? {}).map(([slot, v]) => ({
+          slot,
+          id: v?.id || '(none — will INSERT)',
+          file: v?.file?.uri ?? '(no file — slot unchanged)',
+        }));
+        console.log(
+          `[BrandCompanyForm] ${isEdit ? `UPDATE company id=${id}` : 'CREATE company'} — ${isEdit ? 'uid' : 'huid'}=${uId}`,
+          JSON.stringify({ ...payload, images: imagePreview }, null, 2),
+        );
+      }
       if (isEdit && id) {
         await updateMutation.mutateAsync({ id, payload });
       } else {
         await createMutation.mutateAsync(payload);
       }
+      if (__DEV__) console.log(`[BrandCompanyForm] ${isEdit ? 'UPDATE' : 'CREATE'} succeeded`);
       navigation.goBack();
     } catch (e: any) {
+      if (__DEV__) console.log(`[BrandCompanyForm] ${isEdit ? 'UPDATE' : 'CREATE'} failed:`, e?.response?.data ?? e?.message);
       setError(e?.response?.data?.message || e?.message || 'Something went wrong. Please try again.');
     }
   };
@@ -591,10 +682,16 @@ export function BrandCompanyFormScreen() {
                 errorKey: 'contactPerson',
               })}
 
-              {renderLabel('Designation *', hasError('designation'))}
+              {renderLabel(isEdit ? 'Designation' : 'Designation *', hasError('designation'))}
               {textInput(designation, setDesignation, 'e.g. Franchise Manager', {
                 errorKey: 'designation',
               })}
+              {isEdit ? (
+                <Text className="text-neutral-500 text-xs font-lato -mt-3 mb-4">
+                  The server ignores designation on save. It can only be set when the brand is
+                  created.
+                </Text>
+              ) : null}
 
               {renderLabel('Email *', hasError('emailAddress'))}
               {textInput(emailAddress, setEmailAddress, 'name@example.com', {
@@ -635,7 +732,9 @@ export function BrandCompanyFormScreen() {
                       onPress={() => {
                         setLogo(null);
                         setLogoRemoved(true);
-                        setExistingLogoUri('');
+                        // existingLogo is intentionally kept: its imgId is how
+                        // the save targets (and clears) the row. Only the
+                        // display falls back to logoRemoved.
                       }}
                       hitSlop={8}
                     >
@@ -646,15 +745,15 @@ export function BrandCompanyFormScreen() {
                 {requiredNote('logo')}
               </View>
 
-              {renderLabel('Gallery (up to 4)')}
+              {renderLabel(`Gallery (up to ${gallerySlots})`)}
               <View className="flex-row flex-wrap gap-2 mb-4">
-                {existingGalleryUris.map((uri, index) => (
-                  <View key={`existing-${uri}`} className="relative">
-                    <Image source={{ uri }} className="w-20 h-20 rounded-xl" resizeMode="cover" />
+                {existingGallery.map((img, index) => (
+                  <View key={`existing-${img.imgId}`} className="relative">
+                    <Image source={{ uri: img.uri }} className="w-20 h-20 rounded-xl" resizeMode="cover" />
                     <TouchableOpacity
                       className="absolute -top-1.5 -right-1.5 bg-white rounded-full border border-neutral-200 w-6 h-6 items-center justify-center"
                       onPress={() =>
-                        setExistingGalleryUris((prev) => prev.filter((_, i) => i !== index))
+                        setExistingGallery((prev) => prev.filter((_, i) => i !== index))
                       }
                       hitSlop={6}
                       accessibilityLabel="Remove image"
@@ -675,7 +774,7 @@ export function BrandCompanyFormScreen() {
                     </TouchableOpacity>
                   </View>
                 ))}
-                {existingGalleryUris.length + gallery.length < 4 ? (
+                {galleryTotal < gallerySlots ? (
                   <TouchableOpacity
                     className="w-20 h-20 rounded-xl bg-gray-50 border border-dashed border-neutral-300 items-center justify-center"
                     onPress={pickGallery}

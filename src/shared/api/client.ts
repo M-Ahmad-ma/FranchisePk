@@ -1,10 +1,14 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 
+// No default Content-Type here. Setting one instance-wide leaks into every
+// request, and a hand-set `multipart/form-data` arrives at the server without
+// a boundary, so PHP never populates $_POST/$_FILES. Axios applies
+// `application/json` itself for plain-object bodies, so JSON calls are
+// unaffected by leaving it off.
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
   },
@@ -24,6 +28,12 @@ export function setUnauthorizedHandler(fn: () => void) {
 
 apiClient.interceptors.request.use(async (config) => {
   console.log('[API][Request]', config.method?.toUpperCase(), config.baseURL + (config.url ?? ''));
+  // Belt-and-braces: if anything upstream re-adds a Content-Type to a
+  // multipart body, the boundary is lost and every field arrives empty
+  // instead of erroring. Strip it and let the platform build the part.
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    if (config.headers) delete config.headers['Content-Type'];
+  }
   if (getToken) {
     const auth = await getToken();
     if (auth?.token) {

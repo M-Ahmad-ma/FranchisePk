@@ -1,21 +1,11 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-import { Home, Building2, Compass, CircleQuestionMark } from 'lucide-react-native';
-import { HomeScreen } from '../../features/home/screens/HomeScreen';
+import { Home, Building2, Compass, Phone } from 'lucide-react-native';
 import { FranchiseStack } from './FranchiseStack';
 import { PropertiesStack } from './PropertiesStack';
 import type { InvestorTabParamList } from '../../shared/types/navigation';
-import { View, Text } from 'react-native';
 import { ContactUs } from '../../features/investor/screens/ContactUs';
 import HomeV2 from '../../features/franchise/screens/HomeV2';
-
-function PlaceholderScreen({ name }: { name: string }) {
-  return (
-    <View className="flex-1 items-center justify-center bg-neutral-100">
-      <Text className="text-neutral-700 text-lg">{name}</Text>
-    </View>
-  );
-}
 
 const Tab = createBottomTabNavigator<InvestorTabParamList>();
 
@@ -23,7 +13,7 @@ const tabIcons: Record<keyof InvestorTabParamList, (color: string, size: number)
   Home: (color, size) => <Home color={color} size={size} />,
   FranchiseDirectory: (color, size) => <Compass color={color} size={size} />,
   Properties: (color, size) => <Building2 color={color} size={size} />,
-  ContactUs: (color, size) => <CircleQuestionMark color={color} size={size} />
+  ContactUs: (color, size) => <Phone color={color} size={size} />
 };
 
 export function InvestorBottomTab() {
@@ -65,10 +55,16 @@ export function InvestorBottomTab() {
         component={FranchiseStack}
         options={{
           tabBarLabel: 'Brands',
-          tabBarOnPress: ({ navigation, defaultHandler }) => {
-            navigation.navigate('FranchiseDirectory', { screen: 'FranchiseList' });
-          },
+          popToTopOnBlur: true,
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('FranchiseDirectory', {
+              screen: 'FranchiseList',
+            });
+          },
+        })}
       />
       <Tab.Screen
         name="Properties"

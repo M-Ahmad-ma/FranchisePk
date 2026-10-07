@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ScrollView,
   Text,
@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   Modal,
   FlatList,
-  useWindowDimensions,
   RefreshControl,
 } from 'react-native';
 import { MainLayout } from '../../../shared/layouts/MainLayout';
@@ -292,11 +291,28 @@ export function CompanyDetailScreen() {
   const openLink = (url: string) => Linking.openURL(url).catch(() => { });
 
 
+
+  const logoImage = heroImages[0];
   const stats = [
-    { id: 1, label: "Total investment", value: company?.co_total_investment, image: heroImages[1] },
-    { id: 2, label: "Franchise Fee", value: company?.co_franchise_fee, image: heroImages[2] },
-    { id: 3, label: "Royality Fee", value: company?.co_royalty_fee, image: heroImages[3] }
-  ]
+    {
+      id: 1,
+      label: 'Total investment',
+      value: company?.co_total_investment,
+      image: heroImages[1] ?? logoImage,
+    },
+    {
+      id: 2,
+      label: 'Franchise Fee',
+      value: company?.co_franchise_fee,
+      image: heroImages[2] ?? logoImage,
+    },
+    {
+      id: 3,
+      label: 'Royality Fee',
+      value: company?.co_royalty_fee,
+      image: heroImages[3] ?? logoImage,
+    },
+  ];
 
   if (isLoading) {
     return (
@@ -475,7 +491,7 @@ export function CompanyDetailScreen() {
                   .map((s: string) => String(s).charAt(0).toUpperCase())
                   .join('');
                 return (
-                  <View className='border border-neutral-200 p-3 rounded-2xl'>
+                  <View key={e.id} className='border border-neutral-200 p-3 rounded-2xl'>
                     <View key={e.id ?? idx} className="flex-row items-center gap-3 mt-3">
                       {avatar ? (
                         <Image source={{ uri: avatar }} className="w-12 h-12 rounded-full" resizeMode="cover" />
@@ -500,8 +516,8 @@ export function CompanyDetailScreen() {
                         </TouchableOpacity>
                       )}
                     </View>
-                    <View className='w-1/2 mt-5'>
-                      <Button title='submit request' onPress={() => setSheetVisible(true)} />
+                    <View className='w-1/2 mt-5 flex items-center justify-center'>
+                      <Button title='Submit Request' onPress={() => setSheetVisible(true)} />
                     </View>
                   </View>
                 );
@@ -530,7 +546,7 @@ export function CompanyDetailScreen() {
       </ScrollView>
 
       <Button
-        title='Submit request'
+        title='Submit Request'
         className='w-1/2 absolute right-3 bottom-3 py-3 px-4'
         onPress={() => setSheetVisible(true)}
         icon={<ChevronRight color="white" />}

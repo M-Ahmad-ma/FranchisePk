@@ -13,10 +13,14 @@ import type { FranchiseStackParamList } from '../../../shared/types/navigation';
 import { useEffect, useState } from 'react';
 import Card from '../../home/components/Card';
 import ChipList, { ChipItem } from '../../../shared/components/ChipList';
-import { useCompanyDirectory, useFilteredCompanies } from '../../../shared/hooks/useCompanies';
+import Search from '../../../shared/components/Search';
+import {
+  useCompanyDirectory,
+  useCompanies,
+  useFilteredCompanies,
+} from '../../../shared/hooks/useCompanies';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import {
-  buildCategoryChips,
   paginate,
   hasMore,
   getCompanyCoverImage,
@@ -31,6 +35,8 @@ const PAGE_SIZE = 8;
 const NUM_COLUMNS = 2;
 const CARD_GAP = 0.2;
 const H_PADDING = 2;
+/** Long enough to avoid a request per keystroke, short enough to feel live. */
+const SEARCH_DEBOUNCE_MS = 350;
 
 export function FranchiseListScreen() {
   const { width } = useWindowDimensions();
@@ -43,14 +49,33 @@ export function FranchiseListScreen() {
   const [selected, setSelected] = useState(filter ?? ALL_SECTORS);
   const [page, setPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+  // Search takes precedence: while a query is active the category chips are
+  // hidden, so mixing the two would be ambiguous. Clearing the query returns
+  // to whichever source the screen was already using.
+  const isSearching = search.trim().length > 0;
+
   const directoryQuery = useCompanyDirectory(selected);
   const filterQuery = useFilteredCompanies(
     hasAdvancedFilter ? { cat, range, city } : undefined,
   );
-  const { data, isLoading, isError } = hasAdvancedFilter
-    ? filterQuery
-    : directoryQuery;
-  const { refreshing, onRefresh } = useRefresh(directoryQuery, filterQuery);
+  const searchQuery = useCompanies(search, { enabled: isSearching });
+
+  const { data, isLoading, isError } = isSearching
+    ? searchQuery
+    : hasAdvancedFilter
+      ? filterQuery
+      : directoryQuery;
+  const { refreshing, onRefresh } = useRefresh(directoryQuery, filterQuery, searchQuery);
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [searchInput]);
 
   useEffect(() => {
     if (!hasAdvancedFilter && filter && filter !== selected) {
@@ -132,12 +157,22 @@ export function FranchiseListScreen() {
         )}
         ListHeaderComponent={
           <View className="px-4 pt-4">
-            <ChipList
-              items={chips}
-              selectedId={selected}
-              onSelect={onSelectChip}
-              containerClassName="gap-2 py-2"
+            <Search
+              value={searchInput}
+              onChangeText={setSearchInput}
+              placeholder="Search brands"
+              autoCorrect={false}
+              returnKeyType="search"
+              inputClassName="text-base"
             />
+            {!isSearching ? (
+              <ChipList
+                items={chips}
+                selectedId={selected}
+                onSelect={onSelectChip}
+                containerClassName="gap-2 py-2"
+              />
+            ) : null}
           </View>
         }
         ListEmptyComponent={
@@ -157,15 +192,22 @@ export function FranchiseListScreen() {
             </View>
           ) : isError ? (
             <ErrorRetry
-              message="Unable to load companies."
+              message={isSearching ? 'Unable to run that search.' : 'Unable to load companies.'}
               onRetry={() => {
                 setPage(1);
                 onRefresh();
               }}
             />
           ) : (
-            <View className="items-center py-20">
-              <Text className="text-neutral-500">No companies found.</Text>
+            <View className="items-center px-8 py-20">
+              <Text className="text-neutral-500 text-center">
+                {isSearching ? `No brands match "${search.trim()}".` : 'No companies found.'}
+              </Text>
+              {isSearching ? (
+                <Text className="text-neutral-400 text-sm font-lato mt-2 text-center">
+                  Try a different keyword or clear the search to browse all brands.
+                </Text>
+              ) : null}
             </View>
           )
         }

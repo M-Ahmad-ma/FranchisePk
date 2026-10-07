@@ -223,7 +223,7 @@ export async function updateCompany(id: string | number, payload: CompanyPayload
   if (__DEV__ && Object.values(payload.images ?? {}).some((v) => !v?.id)) {
     console.warn(
       `[company:update ${id}] at least one image slot has no img_id — that slot will INSERT a new ` +
-        'images row. The edit endpoint must return img_id for updates to replace in place.',
+      'images row. The edit endpoint must return img_id for updates to replace in place.',
     );
   }
 

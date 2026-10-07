@@ -77,6 +77,8 @@ export function BrandLeadsScreen() {
     showAllLeads();
   };
 
+  console.log(leads)
+
   if (showLeads) {
     return (
       <MainLayout
@@ -149,15 +151,13 @@ export function BrandLeadsScreen() {
         <View className="flex flex-row items-center justify-between">
           <View className="flex-1 min-w-0">
             <Text className="text-neutral-900 text-2xl font-lato-black">Investor Leads</Text>
-            <Text className="text-neutral-500 text-sm mt-0.5">
+            <Text className="text-neutral-600 text-sm font-normal ">
               {leadsQuery.isLoading
                 ? 'Loading leads…'
                 : `${count} lead${count === 1 ? '' : 's'} across all your brands`}
             </Text>
           </View>
-          <View className="border-[1px] border-gray-300 rounded-xl px-5 py-1">
-            <Text className="text-neutral-700 text-sm font-lato-bold">Investor</Text>
-          </View>
+
         </View>
       </View>
 
@@ -200,13 +200,8 @@ function LeadCard({ item, showCompany = false }: { item: InvestorLead; showCompa
         <Text className="text-neutral-900 font-lato-bold text-sm flex-1 mr-2" numberOfLines={1}>
           {name}
         </Text>
-        {!!item.lead_type && (
-          <View className="bg-primary-200 rounded-full px-2.5 py-1">
-            <Text className="text-primary-700 text-[10px] font-lato-bold uppercase tracking-wider">
-              {item.lead_type}
-            </Text>
-          </View>
-        )}
+
+        <Text>{item?.city}</Text>
       </View>
 
       {showCompany && !!company && (

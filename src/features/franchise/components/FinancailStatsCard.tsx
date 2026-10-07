@@ -18,7 +18,10 @@ export default function FinancailStatsCard({ image, label, amount, className }: 
           <ImageOff color='#8990A8' />
         </View>
       )}
-      <View className="ml-3 flex-1 mt-3">
+      {/* No flex-1 here. This card root is a column container with an auto
+          height, so flex-1 (flex: 1 1 0%) resolves to a zero height and
+          collapses the label and amount out of view. */}
+      <View className="ml-3 mt-3">
         <Text className="text-xs uppercase text-neutral-500 font-lato-bold tracking-wider">
           {label}
         </Text>

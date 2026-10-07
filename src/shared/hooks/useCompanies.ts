@@ -3,10 +3,19 @@ import * as companyService from '../api/companyService';
 import type { InvestorFilterRequest } from '../api/types';
 import { ALL_SECTORS, INTERNATIONAL_SLUG } from '../utils/franchise';
 
-export function useCompanies(search?: string) {
+/**
+ * Full company directory, optionally narrowed by a server-side keyword
+ * (`?q=`, handled by GET /companies).
+ *
+ * Pass `enabled: false` while the search box is empty so it does not issue a
+ * duplicate unfiltered request alongside whatever query the screen is showing.
+ */
+export function useCompanies(search?: string, options?: { enabled?: boolean }) {
+  const trimmed = search?.trim() ?? '';
   return useQuery({
-    queryKey: ['companies', { search }],
-    queryFn: () => companyService.getCompanies(search),
+    queryKey: ['companies', { search: trimmed }],
+    queryFn: () => companyService.getCompanies(trimmed),
+    enabled: (options?.enabled ?? true) && trimmed.length > 0,
     staleTime: 5 * 60 * 1000,
   });
 }

@@ -44,14 +44,14 @@ const Card: React.FC<FeaturedCardProps> = ({
 
           <View className={`absolute w-full h-full ${overlayClassName}`} />
 
-          <TouchableOpacity
-            className="absolute  p-4 rounded-xl top-1 right-2"
-            activeOpacity={0.8}
-            onPress={onPress}
-          >
-            <ArrowUpRight color="white" />
-          </TouchableOpacity>
-
+          {/* <TouchableOpacity */}
+          {/*   className="absolute  p-4 rounded-xl top-1 right-2" */}
+          {/*   activeOpacity={0.8} */}
+          {/*   onPress={onPress} */}
+          {/* > */}
+          {/*   <ArrowUpRight color="white" /> */}
+          {/* </TouchableOpacity> */}
+          {/**/}
           {/* Tag chip */}
           {tag && (
             <View className="absolute top-3 left-3">

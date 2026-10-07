@@ -14,10 +14,8 @@ import type { Company } from '../../../shared/api/types';
 import {
   Store,
   Users,
-  Eye,
   Plus,
   BriefcaseBusiness,
-  ChevronLeft,
   ChevronRight,
 } from 'lucide-react-native';
 import { Log } from '../../../shared/utils/Log';
@@ -53,6 +51,7 @@ export function BrandDashboardScreen() {
   }
 
 
+  // Logo click is handled by AppHeaderV2 for every screen.
   const quickActions = [
     { icon: Plus, label: 'Add Brand', color: '#5279AC', bg: 'bg-primary-200', onPress: () => navigation.navigate('BrandFranchises', { screen: 'BrandCompanyForm' }) },
     { icon: Store, label: 'Manage Brands', color: '#5279AC', bg: 'bg-primary-200', onPress: () => navigation.navigate('BrandFranchises', { screen: 'BrandCompaniesList' }) },
@@ -206,15 +205,9 @@ export function BrandDashboardScreen() {
             <View>
               {companies.map((company, index) => {
                 const name = company.co_name || 'Unnamed brand';
-                const detail =
-                  company.co_investment_range ||
-                  company.co_website_url ||
-                  company.co_description ||
-                  '';
                 const email = company.con_email;
                 const number = company.con_mobilenumber;
-                const image = company?.company_images[0]?.img_name;
-                console.log(image)
+                const image = company?.company_images?.[0]?.img_name;
                 return (
                   <TouchableOpacity
                     key={String(company.co_id ?? index)}

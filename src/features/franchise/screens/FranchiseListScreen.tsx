@@ -53,18 +53,28 @@ export function FranchiseListScreen() {
   const [search, setSearch] = useState('');
   // Search takes precedence: while a query is active the category chips are
   // hidden, so mixing the two would be ambiguous. Clearing the query returns
-  // to whichever source the screen was already using.
+  // to whichever source the screen was still using.
   const isSearching = search.trim().length > 0;
+
+  // Multi-step search (HomeV2) arrives as cat/range/city route params. Those
+  // params persist for the life of the screen, so `hasAdvancedFilter` alone
+  // would pin the list to the filter endpoint forever and a chip tap would
+  // change `selected` without changing which query is displayed. Set this
+  // when the user picks a chip to hand control back to the directory query;
+  // cleared when new multi-step params arrive.
+  const [browsingCategories, setBrowsingCategories] = useState(false);
+
+  const showFilterResults = hasAdvancedFilter && !browsingCategories;
 
   const directoryQuery = useCompanyDirectory(selected);
   const filterQuery = useFilteredCompanies(
-    hasAdvancedFilter ? { cat, range, city } : undefined,
+    showFilterResults ? { cat, range, city } : undefined,
   );
   const searchQuery = useCompanies(search, { enabled: isSearching });
 
   const { data, isLoading, isError } = isSearching
     ? searchQuery
-    : hasAdvancedFilter
+    : showFilterResults
       ? filterQuery
       : directoryQuery;
   const { refreshing, onRefresh } = useRefresh(directoryQuery, filterQuery, searchQuery);
@@ -84,6 +94,12 @@ export function FranchiseListScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
+
+  // New multi-step search arrived: show its results and drop any chip
+  // override, otherwise the previous chip choice would mask the new filter.
+  useEffect(() => {
+    setBrowsingCategories(false);
+  }, [cat, range, city]);
 
   const companies = data?.companies ?? [];
 
@@ -109,6 +125,9 @@ export function FranchiseListScreen() {
   const onSelectChip = (chip: ChipItem) => {
     setSelected(chip.c_slug);
     setPage(1);
+    // Stop showing the multi-step filter results, so the chip actually has an
+    // effect instead of updating `selected` behind a pinned filter query.
+    setBrowsingCategories(true);
   };
 
   const loadMore = () => {

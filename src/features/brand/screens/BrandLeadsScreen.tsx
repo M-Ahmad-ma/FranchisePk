@@ -77,15 +77,19 @@ export function BrandLeadsScreen() {
     showAllLeads();
   };
 
+  const handleProfilePress = () => {
+    navigation.navigate("BrandProfile")
+  }
+
+  // Logo click is handled by AppHeaderV2 for every screen.
+
   console.log(leads)
 
   if (showLeads) {
     return (
       <MainLayout
         showHeader={true}
-        headerRight={
-          <UserAvatar />
-        }
+        headerRight={<UserAvatar size={44} onPress={handleProfilePress} />}
       >
         <View className="px-4 pt-6 pb-2">
           <View className="flex flex-row items-center gap-2">

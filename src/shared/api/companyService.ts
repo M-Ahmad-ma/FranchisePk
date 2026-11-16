@@ -71,20 +71,8 @@ export async function getCities() {
 }
 
 export async function submitMoreInfo(slug: string, payload: MoreInfoRequest) {
-  console.log('[MoreInfo][DEBUG] →', `POST /company/more-info/${slug}`, JSON.stringify(payload));
-  try {
-    const res = await apiClient.post<ApiResponse<boolean>>(`/company/more-info/${slug}`, payload);
-    console.log('[MoreInfo][DEBUG] ← ok', res.status, JSON.stringify(res.data));
-    return res.data;
-  } catch (e: any) {
-    console.log('[MoreInfo][DEBUG] ← error', {
-      status: e?.response?.status,
-      statusText: e?.response?.statusText,
-      data: e?.response?.data,
-      message: e?.message,
-    });
-    throw e;
-  }
+  const res = await apiClient.post<ApiResponse<boolean>>(`/company/more-info/${slug}`, payload);
+  return res.data;
 }
 
 /**

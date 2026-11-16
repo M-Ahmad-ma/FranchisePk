@@ -40,7 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   setTokenProvider(() => Promise.resolve({ token, role: user?.role ?? null }));
 
   const handleUnauthorized = useCallback(() => {
-    console.log('[AuthContext] handleUnauthorized called — clearing auth');
     setUser(null);
     setToken(null);
     authService.clearAuth();
@@ -52,31 +51,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     (async () => {
       try {
         const storedToken = await authService.getStoredToken();
-        console.log('[AuthContext][useEffect] storedToken:', storedToken ? storedToken.substring(0, 20) + '...' : null);
         if (storedToken !== null) {
           setToken(storedToken);
           const storedUser = await authService.getStoredUser();
-          console.log('[AuthContext][useEffect] storedUser:', storedUser ? { name: storedUser.name, role: storedUser.role, email: storedUser.email } : null);
           if (storedUser) {
             setUser(storedUser);
           }
           // Brand tokens are issued by /userpanel/auth/login and are not
           // recognized by GET /auth/profile, so skip the refresh for brand users.
           if (storedUser?.role !== 'brand') {
-            console.log('[AuthContext][useEffect] non-brand user, refreshing profile from API');
             try {
               const fresh = await authService.getProfile();
-              console.log('[AuthContext][useEffect] profile refreshed:', fresh?.name);
               setUser(fresh);
-            } catch (e: any) {
-              console.log('[AuthContext][useEffect] getProfile FAILED:', e?.response?.status, e?.message);
+            } catch {
               // keep stored user
             }
-          } else {
-            console.log('[AuthContext][useEffect] brand user, skipping getProfile');
           }
         } else if (BYPASS_AUTH) {
-          console.log('[AuthContext][useEffect] no stored token, using BYPASS_AUTH');
           const mockUser: User = {
             id: 0,
             name: 'Dev User',
@@ -90,19 +81,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setToken('dev-bypass-token');
           setUser(mockUser);
         } else {
-          console.log('[AuthContext][useEffect] no stored token, checking guest');
           const storedGuest = await authService.getStoredGuest();
-          console.log('[AuthContext][useEffect] storedGuest:', storedGuest);
           if (storedGuest) {
             setIsGuest(true);
           }
         }
-      } catch (e: any) {
-        console.log('[AuthContext][useEffect] OUTER CATCH:', e?.message);
+      } catch {
         await authService.clearAuth();
       } finally {
         setIsLoading(false);
-        console.log('[AuthContext][useEffect] done, isLoading=false');
       }
     })();
   }, []);
@@ -126,12 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       company: string;
       city?: string;
     }, role: UserRole = 'investor') => {
-      console.log('[AuthContext][handleRegister] calling authService.register, role:', role);
       const { token: newToken, user: newUser } = await authService.register(data, role);
-      console.log('[AuthContext][handleRegister] got token:', newToken ? 'yes' : 'no', 'user.role:', newUser?.role);
       setToken(newToken);
       setUser(newUser);
-      console.log('[AuthContext][handleRegister] state updated');
     },
     [],
   );

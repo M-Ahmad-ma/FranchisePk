@@ -36,9 +36,6 @@ export function BrandSignupScreen() {
     }).catch(() => { });
   }, []);
 
-  const cityValue = (c: City): string =>
-    String(c.id ?? c.co_city ?? c.name ?? '');
-
   const handleRegister = async () => {
     setError('');
     if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !contact.trim() || !company.trim()) {
@@ -47,7 +44,6 @@ export function BrandSignupScreen() {
     }
     setLoading(true);
     try {
-      console.log('[BrandSignup] Calling register with role=brand, email:', email.trim());
       await register({
         f_name: firstName.trim(),
         l_name: lastName.trim(),
@@ -57,15 +53,12 @@ export function BrandSignupScreen() {
         company: company.trim(),
         city: city || undefined,
       }, 'brand');
-      console.log('[BrandSignup] register() succeeded, attempting navigation.reset to BrandDrawer');
       try {
         navigation.reset({ index: 0, routes: [{ name: 'BrandDrawer' }] });
-        console.log('[BrandSignup] navigation.reset called successfully');
-      } catch (navErr) {
-        console.log('[BrandSignup] navigation.reset FAILED:', navErr);
+      } catch {
+        // Navigation reset is best-effort; the session is already persisted.
       }
     } catch (e: any) {
-      console.log('[BrandSignup] register() FAILED:', e?.message, e?.response?.status, e?.response?.data);
       setError(getAuthErrorMessage(e, 'register'));
     } finally {
       setLoading(false);

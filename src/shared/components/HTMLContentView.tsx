@@ -66,16 +66,12 @@ export function HTMLContentView({
   const contentLength = content.length;
   const onMessage = (e: WebViewMessageEvent) => {
     const raw = Number(e.nativeEvent.data);
-    console.log('[WebView msg] raw:', raw, 'contentLength:', contentLength, 'guard:', contentLength * 2 + 400);
     if (!Number.isFinite(raw) || raw <= 0) {
-      console.log('[WebView msg] REJECTED: not finite or <=0');
       return;
     }
     if (raw > contentLength * 2 + 400) {
-      console.log('[WebView msg] REJECTED: exceeds guard');
       return;
     }
-    console.log('[WebView msg] ACCEPTED, setting contentHeight to max of prev and', raw);
     setContentHeight((prev) => Math.max(prev, raw));
   };
 
@@ -85,6 +81,9 @@ export function HTMLContentView({
   };
 
   const webHtml = useMemo(() => {
+    // No console.* in this script: it runs in the WebView, so the release
+    // minifier cannot strip it and it would surface in logcat via the chromium
+    // console bridge.
     const measureJs = `
       function reportHeight() {
         var w = window.innerWidth;
@@ -94,21 +93,17 @@ export function HTMLContentView({
         var dsh = document.documentElement ? document.documentElement.scrollHeight : 0;
         var h = oh || bh || dsh || 1;
         h = Math.max(Math.round(h), 1);
-        var msg = JSON.stringify({h:h, w:w, oh:oh, bh:bh, dsh:dsh});
-        console.log('[WEB-JS] reportHeight', msg);
         window.ReactNativeWebView.postMessage(String(h));
       }
       if (document.readyState === 'complete') {
-        console.log('[WEB-JS] readyState complete, reporting now');
         reportHeight();
       } else {
-        console.log('[WEB-JS] listening for DOMContentLoaded/load');
-        document.addEventListener('DOMContentLoaded', function(){ console.log('[WEB-JS] DOMContentLoaded'); reportHeight(); });
-        window.addEventListener('load', function(){ console.log('[WEB-JS] load'); reportHeight(); });
+        document.addEventListener('DOMContentLoaded', function(){ reportHeight(); });
+        window.addEventListener('load', function(){ reportHeight(); });
       }
-      setTimeout(function(){ console.log('[WEB-JS] timeout 50ms'); reportHeight(); }, 50);
-      setTimeout(function(){ console.log('[WEB-JS] timeout 150ms'); reportHeight(); }, 150);
-      setTimeout(function(){ console.log('[WEB-JS] timeout 400ms'); reportHeight(); }, 400);
+      setTimeout(reportHeight, 50);
+      setTimeout(reportHeight, 150);
+      setTimeout(reportHeight, 400);
     `;
     return `
       <!DOCTYPE html>
@@ -144,16 +139,6 @@ export function HTMLContentView({
     ? Math.min(measuredHeight, collapsedHeight)
     : measuredHeight;
 
-  console.log('[HTMLContent]', JSON.stringify({
-    contentLen: contentLength,
-    contentH: contentHeight,
-    measured: Math.round(measuredHeight),
-    collapsed: collapsed,
-    displayed: Math.round(displayedHeight),
-    width: Math.round(width),
-    isPlain: isPlainText,
-    hasHtml: content.includes('<'),
-  }));
   return (
     <View
       onLayout={onLayout}

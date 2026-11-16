@@ -466,26 +466,13 @@ export function BrandCompanyFormScreen() {
     };
 
     try {
-      if (__DEV__) {
-        const imagePreview = Object.entries(payload.images ?? {}).map(([slot, v]) => ({
-          slot,
-          id: v?.id || '(none — will INSERT)',
-          file: v?.file?.uri ?? '(no file — slot unchanged)',
-        }));
-        console.log(
-          `[BrandCompanyForm] ${isEdit ? `UPDATE company id=${id}` : 'CREATE company'} — ${isEdit ? 'uid' : 'huid'}=${uId}`,
-          JSON.stringify({ ...payload, images: imagePreview }, null, 2),
-        );
-      }
       if (isEdit && id) {
         await updateMutation.mutateAsync({ id, payload });
       } else {
         await createMutation.mutateAsync(payload);
       }
-      if (__DEV__) console.log(`[BrandCompanyForm] ${isEdit ? 'UPDATE' : 'CREATE'} succeeded`);
       navigation.goBack();
     } catch (e: any) {
-      if (__DEV__) console.log(`[BrandCompanyForm] ${isEdit ? 'UPDATE' : 'CREATE'} failed:`, e?.response?.data ?? e?.message);
       setError(e?.response?.data?.message || e?.message || 'Something went wrong. Please try again.');
     }
   };

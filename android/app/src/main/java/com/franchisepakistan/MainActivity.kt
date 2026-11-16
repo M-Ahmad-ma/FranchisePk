@@ -1,4 +1,4 @@
-package com.franchisehub
+package com.franchisepakistan
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

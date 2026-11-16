@@ -14,7 +14,7 @@ import { Skeleton } from '../../../shared/components/Skeleton';
 import { useCompanyLeads, useUserLeads } from '../../../shared/hooks/useBrand';
 import { toArray, fullName } from '../../../shared/utils/collections';
 import type { InvestorLead } from '../../../shared/api/types';
-import { Users, ChevronLeft, ChevronRight, Store } from 'lucide-react-native';
+import { Users, ChevronLeft, Store } from 'lucide-react-native';
 import type { BrandTabParamList } from '../../../shared/types/navigation';
 import UserAvatar from '../../../shared/components/UserAvatar';
 import { useRefresh } from '../../../shared/hooks/useRefresh';
@@ -82,8 +82,6 @@ export function BrandLeadsScreen() {
   }
 
   // Logo click is handled by AppHeaderV2 for every screen.
-
-  console.log(leads)
 
   if (showLeads) {
     return (

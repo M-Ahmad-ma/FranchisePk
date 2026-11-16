@@ -40,7 +40,6 @@ import Carousel from '../../home/components/Carousal';
 import { useCompany } from '../../../shared/hooks/useCompanies';
 import { imageUrl } from '../../../shared/api/imageUrl';
 import { getCompanyCoverImage } from '../../../shared/utils/franchise';
-import { Log } from '../../../shared/utils/Log';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import { HTMLContentView } from '../../../shared/components/HTMLContentView';
 import * as companyService from '../../../shared/api/companyService';
@@ -244,7 +243,6 @@ export function CompanyDetailScreen() {
   const location = [company?.co_city, company?.co_province].filter(Boolean).join(', ');
   const locationFull = [location, company?.co_country_id].filter(Boolean).join(' · ');
 
-  Log("company", company?.co_total_investment, company?.co_royalty_fee, company?.co_security_fee)
 
   const facts: Fact[] = [];
   if (company?.company_year && company.company_year !== '0') {

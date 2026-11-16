@@ -212,7 +212,6 @@ export function BrandDashboardScreen() {
                 const email = company.con_email;
                 const number = company.con_mobilenumber;
                 const image = company?.company_images[0]?.img_name;
-                console.log(image)
                 return (
                   <TouchableOpacity
                     key={String(company.co_id ?? index)}

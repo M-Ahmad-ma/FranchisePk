@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Release network policy.
+
+  Cleartext is disabled and only the system trust store is honoured. The API
+  (https://franchisepk.com/api) is HTTPS-only, so nothing here needs plaintext.
+
+  User-installed CAs are deliberately NOT trusted: doing so lets anyone who can
+  install a certificate intercept traffic. Debug builds keep the permissive
+  policy in android/app/src/debug/res/xml/network_security_config.xml, which
+  overrides this file for the debug variant only.
+-->
 <network-security-config>
-    <base-config cleartextTrafficPermitted="true">
+    <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
-            <certificates src="user" />
         </trust-anchors>
     </base-config>
-    <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">franchisepk.com</domain>
-        <trust-anchors>
-            <certificates src="system" />
-            <certificates src="user" />
-        </trust-anchors>
-    </domain-config>
 </network-security-config>

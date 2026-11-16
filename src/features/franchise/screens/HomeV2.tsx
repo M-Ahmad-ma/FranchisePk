@@ -23,7 +23,6 @@ import { ChevronRight, ImageOff } from 'lucide-react-native';
 import { TestimonialsSection } from '../../home/components/TestimonialsSection';
 import { Skeleton } from '../../../shared/components/Skeleton';
 import { Category } from '../../../shared/api/types';
-import { Log } from '../../../shared/utils/Log';
 import UserAvatar from '../../../shared/components/UserAvatar';
 import { useRefresh } from '../../../shared/hooks/useRefresh';
 import { ErrorRetry } from '../../../shared/components/ErrorRetry';
@@ -42,7 +41,6 @@ function HomeV2() {
   const testimonials = homeQuery?.data?.testimonials || [];
 
 
-  Log("categories", categories)
 
   // Filter options sourced from the home API
   const industries: FilterOption[] = categories.map((c) => ({

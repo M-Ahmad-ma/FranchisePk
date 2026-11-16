@@ -3,14 +3,57 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 /**
- * Load the release keystore credentials from keystore.properties.
- * Falls back to the debug keystore if the file is missing.
+ * Release signing.
+ *
+ * Credentials are read from `android/keystore.properties` (gitignored) or, for
+ * CI, from environment variables. There is deliberately NO fallback to the
+ * debug keystore: a release artifact signed with the debug key is rejected by
+ * Play and cannot be replaced once it is uploaded. If the material is missing,
+ * the release build fails instead of producing something unusable.
  */
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
 }
+
+def releaseStoreFile = keystoreProperties['MYAPP_RELEASE_STORE_FILE'] ?: System.getenv('RELEASE_STORE_FILE')
+def releaseStorePassword = keystoreProperties['MYAPP_RELEASE_STORE_PASSWORD'] ?: System.getenv('RELEASE_STORE_PASSWORD')
+def releaseKeyAlias = keystoreProperties['MYAPP_RELEASE_KEY_ALIAS'] ?: System.getenv('RELEASE_KEY_ALIAS')
+def releaseKeyPassword = keystoreProperties['MYAPP_RELEASE_KEY_PASSWORD'] ?: System.getenv('RELEASE_KEY_PASSWORD')
+
+def missingReleaseSigning = []
+if (!releaseStoreFile) missingReleaseSigning << 'store file'
+if (!releaseStorePassword) missingReleaseSigning << 'store password'
+if (!releaseKeyAlias) missingReleaseSigning << 'key alias'
+if (!releaseKeyPassword) missingReleaseSigning << 'key password'
+def hasReleaseSigning = missingReleaseSigning.isEmpty()
+
+/**
+ * Fails only when a release artifact is actually being built, so debug builds
+ * keep working on machines that do not hold the release key.
+ */
+tasks.register('verifyReleaseSigning') {
+    doLast {
+        if (!hasReleaseSigning) {
+            throw new GradleException(
+                "Release signing is not configured (missing: ${missingReleaseSigning.join(', ')}). " +
+                "Add android/keystore.properties or set RELEASE_STORE_FILE, RELEASE_STORE_PASSWORD, " +
+                "RELEASE_KEY_ALIAS and RELEASE_KEY_PASSWORD. Refusing to build a release artifact " +
+                "signed with the debug key.")
+        }
+    }
+}
+
+tasks.matching { it.name == 'bundleRelease' || it.name == 'assembleRelease' }.configureEach {
+    dependsOn tasks.named('verifyReleaseSigning')
+}
+
+// Overridable so a release can bump without editing this file:
+//   ./gradlew bundleRelease -PversionCode=2 -PversionName=1.0.1
+// versionCode must increase on every Play upload.
+def appVersionCode = (project.findProperty("versionCode") ?: 1).toString().toInteger()
+def appVersionName = (project.findProperty("versionName") ?: "1.0").toString()
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -87,13 +130,14 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.franchisehub"
+    namespace "com.franchisepakistan"
     defaultConfig {
-        applicationId "com.franchisehub"
+        applicationId "com.franchisepakistan"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // See appVersionCode / appVersionName above.
+        versionCode appVersionCode
+        versionName appVersionName
     }
     signingConfigs {
         debug {
@@ -103,16 +147,11 @@ android {
             keyPassword 'android'
         }
         release {
-            if (keystorePropertiesFile.exists()) {
-                storeFile file(keystoreProperties['MYAPP_RELEASE_STORE_FILE'])
-                storePassword keystoreProperties['MYAPP_RELEASE_STORE_PASSWORD']
-                keyAlias keystoreProperties['MYAPP_RELEASE_KEY_ALIAS']
-                keyPassword keystoreProperties['MYAPP_RELEASE_KEY_PASSWORD']
-            } else {
-                storeFile file('debug.keystore')
-                storePassword 'android'
-                keyAlias 'androiddebugkey'
-                keyPassword 'android'
+            if (hasReleaseSigning) {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
             }
         }
     }

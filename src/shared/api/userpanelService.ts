@@ -60,20 +60,6 @@ export async function getBrandCompany(id: string | number) {
   return res.data.data;
 }
 
-/** Dev-only: dump FormData contents (fields + image parts) to the Metro console. */
-function logFormData(tag: string, formData: FormData) {
-  if (!__DEV__) return;
-  const parts: Array<[string, unknown]> = (formData as any)._parts ?? [];
-  const summary = parts.map(([key, value]) => {
-    if (value != null && typeof value === 'object' && 'uri' in (value as any)) {
-      const file = value as { uri?: string; name?: string; type?: string };
-      return [key, { kind: 'file', uri: file.uri, name: file.name, type: file.type }];
-    }
-    return [key, { kind: 'text', value }];
-  });
-  console.log(`[${tag}] FormData → ${parts.length} part(s):`, JSON.stringify(summary, null, 2));
-}
-
 // ─── Multipart helpers ───────────────────────────────────────────────────
 
 function appendText(fd: FormData, key: string, value: unknown) {
@@ -153,7 +139,6 @@ function assertWriteOk(res: { data: ApiResponse<any> }, endpoint: string, httpSt
 
 export async function createCompany(payload: CompanyPayload) {
   if (__DEV__) {
-    console.log('[company:create] raw payload keys:', Object.keys(payload), 'huid:', payload.huid);
   }
   const formData = new FormData();
   const { images, ...fields } = payload;
@@ -169,13 +154,10 @@ export async function createCompany(payload: CompanyPayload) {
     if (file) appendFile(formData, slot, file);
   });
 
-  logFormData('company:create → POST /userpanel/companies/create', formData);
-
   const res = await apiClient.post<ApiResponse<{ company_id: number }>>(
     '/userpanel/companies/create',
     formData,
   );
-  if (__DEV__) console.log('[company:create] response:', JSON.stringify(res.data));
   return assertWriteOk(res, 'companies/create', res.status);
 }
 
@@ -199,7 +181,6 @@ const SEND_WHEN_EMPTY_ON_UPDATE = new Set([
 export async function updateCompany(id: string | number, payload: CompanyPayload) {
   const endpoint = `userpanel/companies/update/${id}`;
   if (__DEV__) {
-    console.log(`[company:update ${id}] raw payload keys:`, Object.keys(payload), 'uid:', payload.uid);
   }
   const formData = new FormData();
   const { images, ...fields } = payload;
@@ -220,17 +201,7 @@ export async function updateCompany(id: string | number, payload: CompanyPayload
     if (entry?.file) appendFile(formData, slot, entry.file);
   });
 
-  if (__DEV__ && Object.values(payload.images ?? {}).some((v) => !v?.id)) {
-    console.warn(
-      `[company:update ${id}] at least one image slot has no img_id — that slot will INSERT a new ` +
-      'images row. The edit endpoint must return img_id for updates to replace in place.',
-    );
-  }
-
-  logFormData(`company:update → POST /userpanel/companies/update/${id}`, formData);
-
   const res = await apiClient.post<ApiResponse<boolean>>(`/userpanel/companies/update/${id}`, formData);
-  if (__DEV__) console.log(`[company:update ${id}] response:`, JSON.stringify(res.data));
   return assertWriteOk(res, endpoint, res.status);
 }
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { FeaturedCardProps } from '../../../shared/types';
-import { ArrowUpRight } from 'lucide-react-native';
 
 const Card: React.FC<FeaturedCardProps> = ({
   title,
@@ -37,9 +36,6 @@ const Card: React.FC<FeaturedCardProps> = ({
             source={imageSource}
             className={`w-full h-full ${imageClassName}`}
             resizeMode="cover"
-            onError={(e) => {
-              console.log('[Card] ImageError:', JSON.stringify(imageSource).slice(0, 120), e.nativeEvent?.error);
-            }}
           />
 
           <View className={`absolute w-full h-full ${overlayClassName}`} />

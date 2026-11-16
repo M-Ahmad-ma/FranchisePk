@@ -1,4 +1,4 @@
-package com.franchisehub
+package com.franchisepakistan
 
 import android.app.Application
 import com.facebook.react.PackageList

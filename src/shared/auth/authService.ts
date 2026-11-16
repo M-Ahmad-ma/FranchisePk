@@ -38,12 +38,9 @@ export async function setStoredGuest(isGuest: boolean) {
 }
 
 async function persistAuth(token: string, user: User, role?: UserRole) {
-  console.log('[AuthService][persistAuth] saving token:', token ? token.substring(0, 30) + '...' : 'EMPTY/NULL', 'role:', role, 'user.role:', user?.role);
   await AsyncStorage.setItem(TOKEN_KEY, token);
   await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
   if (role) await AsyncStorage.setItem(ROLE_KEY, role);
-  const verify = await AsyncStorage.getItem(TOKEN_KEY);
-  console.log('[AuthService][persistAuth] verify readback:', verify ? verify.substring(0, 30) + '...' : 'EMPTY/NULL');
 }
 
 export async function clearAuth() {
@@ -114,14 +111,11 @@ export async function login(credentials: LoginRequest, role: UserRole = 'investo
 }
 
 export async function register(data: RegisterRequest, role: UserRole = 'investor'): Promise<AuthSession> {
-  console.log('[AuthService][register] POST /auth/register, role:', role, 'email:', data.email);
   const res = await apiClient.post<{ status: boolean; message: string; data: LoginResponse }>(
     '/auth/register',
     data,
   );
-  console.log('[AuthService][register] Response status:', res.status, 'data keys:', Object.keys(res.data.data ?? {}));
   const { token, user: rawUser } = res.data.data;
-  console.log('[AuthService][register] rawUser:', JSON.stringify(rawUser));
   const user: User = {
     id: rawUser.id ?? 0,
     name: rawUser.name || [data.f_name, data.l_name].filter(Boolean).join(' ').trim() || 'User',
@@ -133,7 +127,6 @@ export async function register(data: RegisterRequest, role: UserRole = 'investor
     date: '',
     role,
   };
-  console.log('[AuthService][register] constructed user:', JSON.stringify(user));
   await persistAuth(token, user);
   return { token, user };
 }

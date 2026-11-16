@@ -26,7 +26,6 @@ import {
   getCompanyCoverImage,
   ALL_SECTORS,
 } from '../../../shared/utils/franchise';
-import { Log } from '../../../shared/utils/Log';
 import { useRefresh } from '../../../shared/hooks/useRefresh';
 import { ErrorRetry } from '../../../shared/components/ErrorRetry';
 import UserAvatar from '../../../shared/components/UserAvatar';
@@ -37,6 +36,16 @@ const CARD_GAP = 0.2;
 const H_PADDING = 2;
 /** Long enough to avoid a request per keystroke, short enough to feel live. */
 const SEARCH_DEBOUNCE_MS = 350;
+/**
+ * How long the footer skeleton stays up when more rows are revealed.
+ *
+ * Pagination here is client-side (`paginate` over an already-fetched list), so
+ * the next page is available in the same tick the footer asks for it. Resetting
+ * the flag on the page change made the skeleton live for exactly one commit,
+ * which reads as "no loader at all". Holding it briefly gives the scroll
+ * feedback the list is meant to show.
+ */
+const LOAD_MORE_FEEDBACK_MS = 450;
 
 export function FranchiseListScreen() {
   const { width } = useWindowDimensions();
@@ -103,8 +112,6 @@ export function FranchiseListScreen() {
 
   const companies = data?.companies ?? [];
 
-  Log("companies", companies)
-  Log("filter", selected)
   const chips: ChipItem[] = [
     {
       c_id: '1',
@@ -115,16 +122,24 @@ export function FranchiseListScreen() {
   ];
   const visibleCompanies = paginate(companies, page, PAGE_SIZE);
 
-  Log("visibleCompanies", visibleCompanies)
   const hasMoreItems = hasMore(companies, page, PAGE_SIZE);
 
+  // Keep the footer skeleton mounted until the delay elapses, then reveal the
+  // next page. The cleanup also cancels a pending reveal if the list is
+  // refreshed or unmounted mid-scroll.
   useEffect(() => {
-    setIsLoadingMore(false);
-  }, [page]);
+    if (!isLoadingMore) return;
+    const handle = setTimeout(() => {
+      setPage((p) => p + 1);
+      setIsLoadingMore(false);
+    }, LOAD_MORE_FEEDBACK_MS);
+    return () => clearTimeout(handle);
+  }, [isLoadingMore]);
 
   const onSelectChip = (chip: ChipItem) => {
     setSelected(chip.c_slug);
     setPage(1);
+    setIsLoadingMore(false);
     // Stop showing the multi-step filter results, so the chip actually has an
     // effect instead of updating `selected` behind a pinned filter query.
     setBrowsingCategories(true);
@@ -133,7 +148,6 @@ export function FranchiseListScreen() {
   const loadMore = () => {
     if (!hasMoreItems || isLoadingMore) return;
     setIsLoadingMore(true);
-    setPage((p) => p + 1);
   };
 
   return (
@@ -153,6 +167,7 @@ export function FranchiseListScreen() {
             refreshing={refreshing}
             onRefresh={() => {
               setPage(1);
+              setIsLoadingMore(false);
               onRefresh();
             }}
             colors={['#5279AC']}
@@ -214,6 +229,7 @@ export function FranchiseListScreen() {
               message={isSearching ? 'Unable to run that search.' : 'Unable to load companies.'}
               onRetry={() => {
                 setPage(1);
+                setIsLoadingMore(false);
                 onRefresh();
               }}
             />

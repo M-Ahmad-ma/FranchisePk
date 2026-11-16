@@ -18,6 +18,15 @@ import { useRefresh } from "../../../shared/hooks/useRefresh"
 import { ErrorRetry } from "../../../shared/components/ErrorRetry"
 
 const PAGE_SIZE = 6
+/**
+ * How long the footer skeleton stays up when more rows are revealed.
+ *
+ * Pagination is client-side (`paginate` over an already-fetched list), so the
+ * next page exists in the same tick the footer asks for it. Resetting the flag
+ * on the page change made the skeleton live for a single commit, which reads as
+ * "no loader at all". Holding it briefly gives the scroll feedback intended.
+ */
+const LOAD_MORE_FEEDBACK_MS = 450
 
 function Properties() {
   const [page, setPage] = useState(1)
@@ -33,14 +42,21 @@ function Properties() {
   const visibleProperties = paginate(properties, page, PAGE_SIZE)
   const hasMoreItems = hasMore(properties, page, PAGE_SIZE)
 
+  // Keep the footer skeleton mounted until the delay elapses, then reveal the
+  // next page. The cleanup also cancels a pending reveal if the list is
+  // refreshed or unmounted mid-scroll.
   useEffect(() => {
-    setIsLoadingMore(false)
-  }, [page])
+    if (!isLoadingMore) return
+    const handle = setTimeout(() => {
+      setPage((p) => p + 1)
+      setIsLoadingMore(false)
+    }, LOAD_MORE_FEEDBACK_MS)
+    return () => clearTimeout(handle)
+  }, [isLoadingMore])
 
   const loadMore = () => {
     if (!hasMoreItems || isLoadingMore) return
     setIsLoadingMore(true)
-    setPage((p) => p + 1)
   }
 
   const renderHeader = () => (
@@ -92,6 +108,7 @@ function Properties() {
             refreshing={refreshing}
             onRefresh={() => {
               setPage(1)
+              setIsLoadingMore(false)
               onRefresh()
             }}
             colors={['#5279AC']}
@@ -134,6 +151,7 @@ function Properties() {
               message="Unable to load properties."
               onRetry={() => {
                 setPage(1)
+                setIsLoadingMore(false)
                 onRefresh()
               }}
             />
